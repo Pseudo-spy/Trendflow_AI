@@ -1,41 +1,66 @@
 from __future__ import annotations
-
 from pathlib import Path
-
+from typing import Iterable
 import pandas as pd
 
-from .schemas import RISK_FEATURES
+PERFORMANCE_FEATURES = [
+    "on_time_delivery_rate",
+    "average_delay_days",
+    "delay_std_days",
+    "quality_score",
+    "disruption_count_90d",
+    "lead_time_days",
+    "recent_otd_trend",
+]
+CONTRACT_FEATURES = [
+    "contract_otd_target",
+    "contract_quality_target",
+    "contract_max_lead_time_days",
+    "contract_delay_penalty_rate",
+    "contract_active",
+]
+ALL_FEATURES = PERFORMANCE_FEATURES + CONTRACT_FEATURES
 
-REQUIRED_COLUMNS = set(RISK_FEATURES) | {"supplier_id", "observation_date", "delay_flag"}
-
-
-def load_performance_data(path: str | Path) -> pd.DataFrame:
-    path = Path(path)
-    if not path.exists():
-        raise FileNotFoundError(path)
-    df = pd.read_csv(path)
-    missing = REQUIRED_COLUMNS - set(df.columns)
+def _require_columns(df: pd.DataFrame, columns: Iterable[str], name: str) -> None:
+    missing = [c for c in columns if c not in df.columns]
     if missing:
-        raise ValueError(f"Missing columns in risk dataset: {sorted(missing)}")
-    df["observation_date"] = pd.to_datetime(df["observation_date"], errors="coerce")
-    if df["observation_date"].isna().any():
-        raise ValueError("Invalid observation_date values found")
-    for col in RISK_FEATURES:
-        df[col] = pd.to_numeric(df[col], errors="coerce")
-    if df[list(RISK_FEATURES)].isna().any().any():
-        raise ValueError("Missing/non-numeric risk feature values found")
-    df["delay_flag"] = pd.to_numeric(df["delay_flag"], errors="raise").astype(int)
-    if not df["delay_flag"].isin([0, 1]).all():
-        raise ValueError("delay_flag must be 0 or 1")
-    return df.sort_values("observation_date").reset_index(drop=True)
+        raise ValueError(f"{name} is missing required columns: {missing}")
 
+def load_performance_csv(path: str | Path) -> pd.DataFrame:
+    df = pd.read_csv(path, parse_dates=["observation_date"])
+    _require_columns(df, ["supplier_id", "observation_date", *PERFORMANCE_FEATURES, "delay_flag"], "performance CSV")
+    if df.empty:
+        raise ValueError("performance CSV is empty")
+    return df
 
-def time_split(df: pd.DataFrame, test_ratio: float = 0.2) -> tuple[pd.DataFrame, pd.DataFrame]:
-    if not 0 < test_ratio < 0.5:
-        raise ValueError("test_ratio must be between 0 and 0.5")
-    cut = max(1, int(len(df) * (1 - test_ratio)))
-    train = df.iloc[:cut].copy()
-    test = df.iloc[cut:].copy()
-    if train.empty or test.empty:
-        raise ValueError("Not enough rows for a time-based split")
-    return train, test
+def load_contracts_csv(path: str | Path) -> pd.DataFrame:
+    df = pd.read_csv(path)
+    _require_columns(df, ["supplier_id", *CONTRACT_FEATURES], "contract CSV")
+    if df["supplier_id"].duplicated().any():
+        raise ValueError("contract CSV must contain one active contract record per supplier")
+    return df
+
+def merge_performance_and_contracts(performance: pd.DataFrame, contracts: pd.DataFrame) -> pd.DataFrame:
+    merged = performance.merge(contracts, on="supplier_id", how="left", validate="many_to_one")
+    missing = merged.loc[merged["contract_active"].isna(), "supplier_id"].unique().tolist()
+    if missing:
+        raise ValueError(f"Missing contract record(s) for suppliers: {missing}")
+    return merged
+
+def clean_features(df: pd.DataFrame) -> pd.DataFrame:
+    out = df.copy()
+    for col in ALL_FEATURES:
+        out[col] = pd.to_numeric(out[col], errors="coerce")
+    if out[ALL_FEATURES].isna().any().any():
+        bad = out[ALL_FEATURES].isna().sum()
+        bad = bad[bad > 0].to_dict()
+        raise ValueError(f"Feature data contains missing/non-numeric values: {bad}")
+    out["contract_active"] = out["contract_active"].astype(int)
+    return out
+
+def make_quality_risk_flag(df: pd.DataFrame, threshold: float = 90.0) -> pd.Series:
+    return (df["quality_score"] < threshold).astype(int)
+
+def latest_supplier_snapshot(df: pd.DataFrame) -> pd.DataFrame:
+    ordered = df.sort_values(["supplier_id", "observation_date"])
+    return ordered.groupby("supplier_id", as_index=False).tail(1).copy()
