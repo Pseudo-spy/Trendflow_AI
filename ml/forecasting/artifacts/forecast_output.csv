@@ -1,0 +1,3 @@
+sku,forecast_date,forecast_quantity,confidence,model_version
+TW001,2026-10-01,9733,,v1.0-baseline
+TW002,2026-10-01,6750,,v1.0-baseline
