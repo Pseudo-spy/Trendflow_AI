@@ -13,6 +13,7 @@ def test_sample_allocation_hits_required_quantity() -> None:
         ROOT / "data/sample/supplier_materials.csv",
         ROOT / "data/sample/suppliers.csv",
     )
+
     request = AllocationRequest(
         material_id="MAT001",
         required_quantity=30_000,
@@ -20,14 +21,17 @@ def test_sample_allocation_hits_required_quantity() -> None:
         plant_id="PLANT001",
         priority="HIGH",
     )
+
     result = SupplierAllocationOptimizer().optimize(
         request,
         suppliers,
         current_date=date(2026, 8, 23),
     )
+
     assert result.is_feasible
     assert result.total_allocated == 30_000
     assert round(sum(x.quantity for x in result.allocation)) == 30_000
+
     for line in result.allocation:
         assert line.quantity > 0
         assert line.total_cost == line.quantity * line.unit_price

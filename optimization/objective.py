@@ -1,53 +1,80 @@
 from __future__ import annotations
 
-from datetime import date
-from typing import Dict, List
+from dataclasses import dataclass
 
-from .schemas import OptimizationWeights, SupplierMaterial
+from .config import ObjectiveWeights
+from .schemas import SupplierOption
 
 
-def _normalise(value: float, minimum: float, maximum: float) -> float:
-    if maximum <= minimum:
+@dataclass(frozen=True)
+class ObjectiveTerm:
+    score: float
+    breakdown: dict[str, float]
+
+
+def _minmax(value: float, low: float, high: float) -> float:
+    if high <= low:
         return 0.0
-    return (value - minimum) / (maximum - minimum)
+    return (value - low) / (high - low)
 
 
-def build_unit_penalties(
-    suppliers: List[SupplierMaterial],
-    required_date: date,
-    current_date: date,
-    weights: OptimizationWeights,
-    scale: int,
-) -> Dict[str, int]:
-    weights.validate()
+def build_objective_terms(
+    suppliers: list[SupplierOption], weights: ObjectiveWeights
+) -> dict[str, ObjectiveTerm]:
     if not suppliers:
-        return {}
+        raise ValueError("No suppliers available for objective construction")
 
     prices = [s.unit_price for s in suppliers]
-    lead_times = [s.lead_time_days for s in suppliers]
-    max_price = max(prices)
-    min_price = min(prices)
-    max_lead = max(lead_times)
-    min_lead = min(lead_times)
-    days_available = max(0, (required_date - current_date).days)
-    penalties: Dict[str, int] = {}
+    leads = [s.lead_time_days for s in suppliers]
+    quality = [s.quality_score for s in suppliers]
+    otd = [s.otd_score for s in suppliers]
+    pmin, pmax = min(prices), max(prices)
+    lmin, lmax = min(leads), max(leads)
+    qmin, qmax = min(quality), max(quality)
+    omin, omax = min(otd), max(otd)
+    w = weights.normalized
 
-    for s in suppliers:
-        cost_penalty = _normalise(s.unit_price, min_price, max_price)
-        late_days = max(0, s.lead_time_days - days_available)
-        delay_penalty = late_days / max(1, max_lead)
-        quality_penalty = 1.0 - (s.quality_score / 100.0)
-        otd_penalty = 1.0 - (s.otd_score / 100.0)
-        lead_penalty = _normalise(s.lead_time_days, min_lead, max_lead)
+    terms: dict[str, ObjectiveTerm] = {}
+    for supplier in suppliers:
+        cost_component = _minmax(supplier.unit_price, pmin, pmax)
+        risk_component = supplier.risk_score
+        delivery_component = supplier.delivery_risk
+        lead_component = _minmax(supplier.lead_time_days, lmin, lmax)
+        quality_component = 1.0 - _minmax(supplier.quality_score, qmin, qmax)
+        otd_component = 1.0 - _minmax(supplier.otd_score, omin, omax)
+        otd_target_gap = max(0.0, (supplier.contract_otd_target or 0.0) - supplier.otd_score / 100.0)
+        quality_target_gap = max(0.0, (supplier.contract_quality_target or 0.0) - supplier.quality_score) / 100.0
+        contract_target_penalty = 0.10 * otd_target_gap + 0.05 * quality_target_gap
+        contract_penalty = supplier.contract_delay_penalty_rate * supplier.risk_score + contract_target_penalty
 
         score = (
-            weights.cost * cost_penalty
-            + weights.delay * (delay_penalty + 0.25 * lead_penalty)
-            + weights.risk * s.risk_score
-            + weights.quality * quality_penalty
-            + weights.otd * otd_penalty
+            w.cost * cost_component
+            + w.supplier_risk * risk_component
+            + w.delivery_risk * delivery_component
+            + w.lead_time * lead_component
+            + w.quality * quality_component
+            + w.otd * otd_component
+            + contract_penalty
         )
-        # Adding a tiny price tie-breaker helps make equal-score solutions stable.
-        score += 1e-6 * s.unit_price
-        penalties[s.supplier_id] = max(0, int(round(score * scale)))
-    return penalties
+        terms[supplier.supplier_id] = ObjectiveTerm(
+            score=score,
+            breakdown={
+                "base_price": supplier.unit_price,
+                "cost_component": cost_component,
+                "risk_component": risk_component,
+                "delivery_risk_component": delivery_component,
+                "lead_time_component": lead_component,
+                "quality_penalty_component": quality_component,
+                "otd_penalty_component": otd_component,
+                "contract_penalty_component": contract_penalty,
+                "contract_otd_target_gap": otd_target_gap,
+                "contract_quality_target_gap": quality_target_gap,
+                "effective_objective_score": score,
+            },
+        )
+    return terms
+
+
+def estimate_fallback_risk(supplier: SupplierOption) -> float:
+    """Transparent fallback if a caller constructs a supplier without ML risk."""
+    return max(0.0, min(1.0, 1.0 - supplier.otd_score / 100.0))
