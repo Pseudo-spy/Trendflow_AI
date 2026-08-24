@@ -1,14 +1,37 @@
-"""
-Day-1 placeholder tests for P3's optimizer (optimization/supplier_allocation.py).
-"""
-import pytest
+from datetime import date
+from pathlib import Path
+
+from optimization.loader import load_supplier_materials
+from optimization.supplier_allocation import SupplierAllocationOptimizer
+from optimization.schemas import AllocationRequest
+
+ROOT = Path(__file__).resolve().parents[2]
 
 
-@pytest.mark.skip(reason="Waiting on P3's optimization/supplier_allocation.py to exist")
-def test_allocation_meets_required_quantity():
-    pass
+def test_sample_allocation_hits_required_quantity() -> None:
+    suppliers = load_supplier_materials(
+        ROOT / "data/sample/supplier_materials.csv",
+        ROOT / "data/sample/suppliers.csv",
+    )
 
+    request = AllocationRequest(
+        material_id="MAT001",
+        required_quantity=30_000,
+        required_date=date(2026, 10, 15),
+        plant_id="PLANT001",
+        priority="HIGH",
+    )
 
-def test_placeholder_runs():
-    """Sanity check that pytest picks up this file. Replace once real tests land."""
-    assert True
+    result = SupplierAllocationOptimizer().optimize(
+        request,
+        suppliers,
+        current_date=date(2026, 8, 23),
+    )
+
+    assert result.is_feasible
+    assert result.total_allocated == 30_000
+    assert round(sum(x.quantity for x in result.allocation)) == 30_000
+
+    for line in result.allocation:
+        assert line.quantity > 0
+        assert line.total_cost == line.quantity * line.unit_price

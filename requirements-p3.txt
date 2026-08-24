@@ -1,0 +1,14 @@
+# P3: PR1 optimization + supplier risk
+ortools==9.15.6755
+numpy>=2.0.0,<2.6
+pandas>=2.2,<3
+scipy>=1.18,<2
+scikit-learn>=1.9,<2
+matplotlib>=3.9,<4
+seaborn>=0.13,<1
+plotly>=6,<7
+joblib>=1.4,<2
+pytest>=8,<9
+pydantic>=2,<3
+python-dotenv>=1,<2
+supabase>=2,<3

@@ -1,0 +1,6 @@
+supplier_id,supplier_name,location,risk_level
+SUP001,Alpha Textiles,India,LOW
+SUP002,Beta Fabrics,India,MEDIUM
+SUP003,Gamma Materials,Bangladesh,HIGH
+SUP004,Delta Mills,India,LOW
+SUP005,EastWeave Textiles,Vietnam,MEDIUM

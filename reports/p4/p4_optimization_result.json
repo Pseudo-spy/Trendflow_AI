@@ -1,0 +1,119 @@
+{
+  "status": "OPTIMAL",
+  "material_id": "MAT001",
+  "plant_id": "PLANT001",
+  "priority": "HIGH",
+  "required_quantity": 30000,
+  "total_allocated": 30000,
+  "total_cost": 4350000.0,
+  "objective_value": 13230.57,
+  "objective_bound": 13230.57,
+  "solve_time_seconds": 0.018541,
+  "allocation": [
+    {
+      "supplier_id": "SUP001",
+      "supplier_name": "Alpha Textiles",
+      "material_id": "MAT001",
+      "quantity": 30000,
+      "percentage": 100.0,
+      "unit_price": 145.0,
+      "total_cost": 4350000.0,
+      "risk_score": 0.183598,
+      "risk_level": "LOW",
+      "delivery_risk": 0.271235,
+      "quality_risk": 0.052143,
+      "quality_score": 95.0,
+      "otd_score": 94.0,
+      "lead_time_days": 12,
+      "expected_delivery_date": "2026-09-05"
+    }
+  ],
+  "kpis": {
+    "avg_unit_cost": 145.0,
+    "weighted_avg_risk_score": 0.183598,
+    "weighted_delivery_risk": 0.271235,
+    "weighted_quality_risk": 0.052143,
+    "weighted_lead_time_days": 12.0,
+    "weighted_quality_score": 95.0,
+    "weighted_otd_score": 94.0,
+    "suppliers_used": 1,
+    "allocation_concentration_hhi": 1.0,
+    "cheapest_available_price": 130.0,
+    "premium_over_cheapest_pct": 11.5385,
+    "high_risk_share": 0.0
+  },
+  "diagnostics": {
+    "excluded_suppliers": [],
+    "objective_breakdown": {
+      "SUP001": {
+        "base_price": 145.0,
+        "cost_component": 0.75,
+        "risk_component": 0.183598,
+        "delivery_risk_component": 0.271235,
+        "lead_time_component": 0.1,
+        "quality_penalty_component": 0.11764705882352944,
+        "otd_penalty_component": 0.09999999999999998,
+        "contract_penalty_component": 0.008343920000000001,
+        "contract_otd_target_gap": 0.010000000000000009,
+        "contract_quality_target_gap": 0.0,
+        "effective_objective_score": 0.4410189741176471
+      },
+      "SUP002": {
+        "base_price": 138.0,
+        "cost_component": 0.4,
+        "risk_component": 0.529581,
+        "delivery_risk_component": 0.549865,
+        "lead_time_component": 0.5,
+        "quality_penalty_component": 0.5294117647058824,
+        "otd_penalty_component": 0.7,
+        "contract_penalty_component": 0.027887430000000005,
+        "contract_otd_target_gap": 0.10000000000000009,
+        "contract_quality_target_gap": 0.04,
+        "effective_objective_score": 0.5074378735294117
+      },
+      "SUP003": {
+        "base_price": 130.0,
+        "cost_component": 0.0,
+        "risk_component": 0.936363,
+        "delivery_risk_component": 0.893954,
+        "lead_time_component": 1.0,
+        "quality_penalty_component": 1.0,
+        "otd_penalty_component": 1.0,
+        "contract_penalty_component": 0.03672726,
+        "contract_otd_target_gap": 0.14,
+        "contract_quality_target_gap": 0.08,
+        "effective_objective_score": 0.5600016
+      },
+      "SUP004": {
+        "base_price": 150.0,
+        "cost_component": 1.0,
+        "risk_component": 0.228484,
+        "delivery_risk_component": 0.380775,
+        "lead_time_component": 0.0,
+        "quality_penalty_component": 0.0,
+        "otd_penalty_component": 0.0,
+        "contract_penalty_component": 0.00913936,
+        "contract_otd_target_gap": 0.0,
+        "contract_quality_target_gap": 0.0,
+        "effective_objective_score": 0.55509884
+      },
+      "SUP005": {
+        "base_price": 142.0,
+        "cost_component": 0.6,
+        "risk_component": 0.50938,
+        "delivery_risk_component": 0.367362,
+        "lead_time_component": 0.3,
+        "quality_penalty_component": 0.3529411764705882,
+        "otd_penalty_component": 0.35,
+        "contract_penalty_component": 0.018781400000000004,
+        "contract_otd_target_gap": 0.030000000000000027,
+        "contract_quality_target_gap": 0.01,
+        "effective_objective_score": 0.5141343223529413
+      }
+    },
+    "infeasibility_reason": null
+  },
+  "message": "Optimization completed successfully.",
+  "model_version": "p4-cpsat-v2",
+  "solver_name": "OR-Tools CP-SAT"
+}

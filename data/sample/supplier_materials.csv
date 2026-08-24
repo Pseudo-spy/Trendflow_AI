@@ -1,0 +1,6 @@
+supplier_id,material_id,unit_price,capacity,lead_time_days,quality_score,otd_score,min_allocation,max_allocation
+SUP001,MAT001,145,30000,12,95,94,5000,30000
+SUP002,MAT001,138,40000,20,88,82,5000,35000
+SUP003,MAT001,130,50000,30,80,76,0,30000
+SUP004,MAT001,150,25000,10,97,96,5000,25000
+SUP005,MAT001,142,35000,16,91,89,0,30000

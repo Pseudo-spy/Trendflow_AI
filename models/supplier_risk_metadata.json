@@ -1,0 +1,24 @@
+{
+  "model_version": "p3-risk-v2",
+  "accuracy": 0.74,
+  "precision": 0.625,
+  "recall": 0.6944444444444444,
+  "f1": 0.6578947368421053,
+  "roc_auc": 0.8328993055555556,
+  "train_rows": 400,
+  "test_rows": 100,
+  "features": [
+    "on_time_delivery_rate",
+    "average_delay_days",
+    "delay_std_days",
+    "quality_score",
+    "disruption_count_90d",
+    "lead_time_days",
+    "recent_otd_trend",
+    "contract_otd_target",
+    "contract_quality_target",
+    "contract_max_lead_time_days",
+    "contract_delay_penalty_rate",
+    "contract_active"
+  ]
+}

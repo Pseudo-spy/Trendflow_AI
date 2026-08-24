@@ -220,6 +220,7 @@ __marimo__/
 __pycache__/
 *.py[cod]
 .venv/
+.venv-p3/
 venv/
 env/
 
