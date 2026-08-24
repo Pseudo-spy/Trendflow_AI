@@ -8,7 +8,7 @@
   "total_cost": 4350000.0,
   "objective_value": 13230.57,
   "objective_bound": 13230.57,
-  "solve_time_seconds": 0.02063,
+  "solve_time_seconds": 0.016741,
   "allocation": [
     {
       "supplier_id": "SUP001",
