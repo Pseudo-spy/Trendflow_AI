@@ -9,8 +9,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-# Canonical P3 output contract.
-# Existing tests and downstream P3 consumers use this shape.
 RISK_COLUMNS = [
     "supplier_id",
     "risk_score",
@@ -25,10 +23,9 @@ RISK_COLUMNS = [
 
 class SupabaseRiskWriter:
     """
-    Publish canonical P3 risk predictions to the existing shared
-    Supabase risk_predictions table.
+    Publish canonical P3 risk predictions to the shared Supabase table.
 
-    Canonical P3 payload:
+    Canonical P3 fields:
         supplier_id
         risk_score
         risk_level
@@ -39,11 +36,12 @@ class SupabaseRiskWriter:
         generated_at
 
     Live Supabase mapping:
-        risk_score    -> delay_probability
-        generated_at  -> created_at
-        supplier_id   -> supplier_id
-        risk_level    -> risk_level
-        delivery_risk -> delivery_risk
+        risk_score      -> delay_probability
+        generated_at    -> created_at
+        risk_level      -> risk_level
+        delivery_risk   -> delivery_risk
+        quality_risk    -> quality_risk
+        prediction_date -> prediction_date
     """
 
     def __init__(
@@ -77,8 +75,8 @@ class SupabaseRiskWriter:
         """
         Build the canonical P3 payload.
 
-        This function intentionally keeps the P3 contract independent
-        from the current Supabase database schema.
+        This remains independent from the live Supabase schema so
+        existing P3 tests and downstream consumers keep working.
         """
         missing = [
             column
@@ -114,8 +112,7 @@ class SupabaseRiskWriter:
         canonical_records: list[dict[str, Any]],
     ) -> list[dict[str, Any]]:
         """
-        Translate the canonical P3 contract into the current live
-        Supabase risk_predictions schema.
+        Convert canonical P3 records into the current Supabase schema.
         """
         rows: list[dict[str, Any]] = []
 
@@ -123,12 +120,12 @@ class SupabaseRiskWriter:
             rows.append(
                 {
                     "supplier_id": record["supplier_id"],
-                    # P3 is supplier-level, so material_id is intentionally
-                    # NULL in the shared historical table.
                     "material_id": None,
                     "delay_probability": float(record["risk_score"]),
                     "risk_level": record["risk_level"],
                     "delivery_risk": float(record["delivery_risk"]),
+                    "quality_risk": float(record["quality_risk"]),
+                    "prediction_date": record["prediction_date"],
                     "model_version": record["model_version"],
                     "created_at": record["generated_at"],
                 }
@@ -141,10 +138,10 @@ class SupabaseRiskWriter:
         predictions: pd.DataFrame,
     ) -> list[dict[str, Any]]:
         """
-        Insert canonical P3 predictions into the existing Supabase table.
+        Insert new P3 prediction rows.
 
         supplier_id is not unique in the shared table, so INSERT is used
-        instead of UPSERT.
+        rather than UPSERT.
         """
         canonical_records = self.build_payload(predictions)
         database_rows = self._to_supabase_payload(canonical_records)
@@ -163,9 +160,9 @@ class SupabaseRiskWriter:
         predictions: pd.DataFrame,
     ) -> list[dict[str, Any]]:
         """
-        Backward-compatible public method.
+        Backward-compatible public method name.
 
         The live table uses an auto-generated primary key and supplier_id
-        is not unique, so the operation is INSERT.
+        is not unique, so the underlying operation is INSERT.
         """
         return self.insert(predictions)
