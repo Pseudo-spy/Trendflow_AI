@@ -40,10 +40,9 @@ def evaluate_model_on_holdout(model_path: str = DEFAULT_MODEL_PATH) -> dict:
     """
     Evaluates the trained model against the latest 2 months of Supabase demand history.
     """
-    if not os.path.exists(model_path):
-        raise FileNotFoundError(f"Trained model not found at {model_path}. Run train.py first.")
+    from predict import load_model
+    model_bundle = load_model(model_path)
 
-    model_bundle = joblib.load(model_path)
     model = model_bundle["model"]
     feature_cols = model_bundle["feature_cols"]
     cat_to_code = model_bundle["cat_to_code"]

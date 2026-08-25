@@ -29,10 +29,18 @@ LOCAL_PRODUCTS_CSV = os.path.join(SCRIPT_DIR, "..", "..", "data", "sample", "pro
 def load_model(path: str = DEFAULT_MODEL_PATH) -> dict:
     """
     Load the trained forecasting model bundle.
+    If not found on disk, automatically trains and persists on the fly so it never fails on any machine.
     """
     if not os.path.exists(path):
-        raise FileNotFoundError(f"Model artifact not found at {path}. Run train.py first.")
+        print(f"Model artifact not found at {path}. Automatically training model on the fly...")
+        from train import load_dataset, build_features, train_forecasting_model, save_model
+        df_demand, df_products = load_dataset(use_supabase=True)
+        df_features = build_features(df_demand, df_products)
+        bundle = train_forecasting_model(df_features, df_products)
+        save_model(bundle, path)
+        return bundle
     return joblib.load(path)
+
 
 
 def load_product_master() -> pd.DataFrame:

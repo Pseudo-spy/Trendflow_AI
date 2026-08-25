@@ -251,6 +251,8 @@ Thumbs.db
 # ML
 *.pkl
 *.joblib
+!ml/forecasting/artifacts/forecasting_model.pkl
+!models/supplier_risk.joblib
 
 # Secrets
-secrets/
+secrets/
