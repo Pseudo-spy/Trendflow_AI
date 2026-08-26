@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import type { UserSession, LoginCredentials, AuthState } from '../types/auth';
 import { authService } from '../services/authService';
+import { supabase } from '../lib/supabase';
 
 interface AuthContextType extends AuthState {
   login: (credentials: LoginCredentials) => Promise<UserSession>;
@@ -15,12 +16,45 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check initial active session
-    const currentUser = authService.getCurrentUser();
-    if (currentUser) {
-      setUser(currentUser);
-    }
-    setIsLoading(false);
+    let mounted = true;
+
+    const initializeAuth = async () => {
+      try {
+        const currentUser = await authService.getCurrentUser();
+        if (mounted) {
+          setUser(currentUser);
+        }
+      } catch (err) {
+        if (mounted) {
+          setUser(null);
+        }
+      } finally {
+        if (mounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    initializeAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (!mounted) return;
+      if (session) {
+         const currentUser = await authService.getCurrentUser();
+         if (mounted) {
+            setUser(currentUser);
+         }
+      } else {
+         if (mounted) {
+            setUser(null);
+         }
+      }
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const login = async (credentials: LoginCredentials): Promise<UserSession> => {
