@@ -1,4 +1,15 @@
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
+from datetime import date as _date, datetime
+from pathlib import Path
+
+from optimization.scenario_runner import run_scenario as _run_scenario
+from services.scenario_explanation import explain_scenario
+
+# Project root is 3 levels up from this file:
+# backend/app/repositories/procurement.py -> backend/app -> backend -> project root
+_PROJECT_ROOT = Path(__file__).resolve().parents[3]
+_DATA_DIR = _PROJECT_ROOT / "data" / "sample"
+_REPORTS_DIR = _PROJECT_ROOT / "reports"
 
 
 def run_procurement_optimization(
@@ -73,18 +84,61 @@ def predict_supplier_risk(supplier_id: str, material_id: str) -> Dict[str, Any]:
     }
 
 
-def run_scenario_simulation(scenario_name: str, material_id: str, quantity_modifier: float = 1.0) -> Dict[str, Any]:
-    base_qty = 30000
-    adjusted_qty = int(base_qty * quantity_modifier)
-    unit_price_est = 145.0
-    estimated_cost = adjusted_qty * unit_price_est
+def run_scenario_simulation(
+    scenario_name: str,
+    material_id: str,
+    required_quantity: int,
+    required_date: str,
+    plant_id: str,
+    priority: str = "HIGH",
+    target_supplier_id: Optional[str] = None,
+    magnitude: float = 0.3,
+) -> Dict[str, Any]:
+    """
+    Runs the REAL what-if comparison via optimization.scenario_runner
+    (real OR-Tools optimizer, real scenario perturbation functions),
+    then narrates the result via services.scenario_explanation (Gemini,
+    with a deterministic fallback). No fake/hardcoded math here anymore.
+    """
+    required_date_obj = datetime.strptime(required_date, "%Y-%m-%d").date()
+
+    comparison = _run_scenario(
+        scenario_type=scenario_name,
+        material_id=material_id,
+        required_quantity=required_quantity,
+        required_date=required_date_obj,
+        plant_id=plant_id,
+        priority=priority,
+        target_supplier_id=target_supplier_id,
+        magnitude=magnitude,
+        data_dir=_DATA_DIR,
+        reports_dir=_REPORTS_DIR,
+        current_date=_date.today(),
+    )
+
+    narration = explain_scenario(comparison)
 
     return {
         "scenario_name": scenario_name,
         "material_id": material_id,
-        "adjusted_required_quantity": adjusted_qty,
-        "feasibility": "FEASIBLE" if adjusted_qty <= 100000 else "CAPACITY_CONSTRAINED",
-        "estimated_cost": estimated_cost,
-        "recommended_action": f"Allocate {adjusted_qty:,} units across approved suppliers SUP001, SUP002, and SUP004."
+        "feasibility_changed": comparison.feasibility_changed,
+        "baseline_status": comparison.baseline.status,
+        "scenario_status": comparison.scenario.status,
+        "baseline_cost": comparison.baseline.total_cost,
+        "scenario_cost": comparison.scenario.total_cost,
+        "cost_delta": comparison.cost_delta,
+        "cost_delta_pct": comparison.cost_delta_pct,
+        "baseline_risk_score": comparison.baseline.kpis.weighted_avg_risk_score,
+        "scenario_risk_score": comparison.scenario.kpis.weighted_avg_risk_score,
+        "risk_delta": comparison.risk_delta,
+        "allocation_deltas": [
+            {
+                "supplier_id": d.supplier_id,
+                "baseline_quantity": d.baseline_quantity,
+                "scenario_quantity": d.scenario_quantity,
+                "change": d.change,
+            }
+            for d in comparison.allocation_deltas
+        ],
+        "explanation": narration,
     }
-

@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Literal
 from pydantic import BaseModel
 
 
@@ -114,16 +114,37 @@ class RiskPredictionResponse(BaseModel):
 
 
 class ScenarioRunRequest(BaseModel):
-    scenario_name: str
+    scenario_name: Literal[
+        "demand_spike", "capacity_reduction", "supplier_disruption", "lead_time_shock"
+    ]
     material_id: str
-    quantity_modifier: Optional[float] = 1.0
+    required_quantity: int
+    required_date: str
+    plant_id: str
+    priority: Optional[str] = "HIGH"
+    target_supplier_id: Optional[str] = None
+    magnitude: Optional[float] = 0.3
+
+
+class AllocationDeltaItem(BaseModel):
+    supplier_id: str
+    baseline_quantity: int
+    scenario_quantity: int
+    change: int
 
 
 class ScenarioRunResponse(BaseModel):
     scenario_name: str
     material_id: str
-    adjusted_required_quantity: int
-    feasibility: str
-    estimated_cost: float
-    recommended_action: str
-
+    feasibility_changed: bool
+    baseline_status: str
+    scenario_status: str
+    baseline_cost: float
+    scenario_cost: float
+    cost_delta: float
+    cost_delta_pct: Optional[float] = None
+    baseline_risk_score: float
+    scenario_risk_score: float
+    risk_delta: float
+    allocation_deltas: List[AllocationDeltaItem]
+    explanation: str
