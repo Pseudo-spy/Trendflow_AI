@@ -83,9 +83,12 @@ def _apply_supabase_risk(
             delivery_risk = float(delivery_risk_raw)
             delivery_risk = max(0.0, min(1.0, delivery_risk))
 
-        # The current Supabase risk_predictions table does not contain
-        # quality_risk, so preserve the existing P4 value here.
-        quality_risk = supplier.quality_risk
+        quality_risk_raw = row.get("quality_risk")
+        if quality_risk_raw is None:
+            quality_risk = supplier.quality_risk
+        else:
+            quality_risk = float(quality_risk_raw)
+            quality_risk = max(0.0, min(1.0, quality_risk))
 
         updated_suppliers.append(
             replace(
