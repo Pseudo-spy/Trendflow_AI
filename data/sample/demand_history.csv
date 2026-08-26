@@ -1,6 +1,0 @@
-sku,demand_date,quantity_sold,promotion,markdown_percentage,sell_through_rate
-TW001,2026-01-01,8500,False,0.0,78.5
-TW001,2026-02-01,9200,False,0.0,81.2
-TW001,2026-03-01,11500,True,10.0,89.4
-TW002,2026-01-01,6000,False,0.0,72.0
-TW002,2026-02-01,7500,False,0.0,75.0
