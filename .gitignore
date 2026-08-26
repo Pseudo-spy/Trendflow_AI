@@ -225,6 +225,7 @@ __marimo__/
 __pycache__/
 *.py[cod]
 .venv/
+.venv-p3/
 venv/
 env/
 
@@ -255,6 +256,8 @@ Thumbs.db
 # ML
 *.pkl
 *.joblib
+!ml/forecasting/artifacts/forecasting_model.pkl
+!models/supplier_risk.joblib
 
 # Secrets
 secrets/

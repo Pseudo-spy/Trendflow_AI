@@ -1,0 +1,6 @@
+supplier_id,contract_otd_target,contract_quality_target,contract_max_lead_time_days,contract_delay_penalty_rate,contract_active
+SUP001,0.95,95,20,0.04,1
+SUP002,0.92,92,24,0.03,1
+SUP003,0.9,88,30,0.02,1
+SUP004,0.95,95,20,0.04,1
+SUP005,0.92,92,24,0.03,1

@@ -44,7 +44,11 @@ def run_scenario_endpoint(request: ScenarioRunRequest):
     result = run_scenario_simulation(
         scenario_name=request.scenario_name,
         material_id=request.material_id,
-        quantity_modifier=request.quantity_modifier or 1.0
+        required_quantity=request.required_quantity,
+        required_date=request.required_date,
+        plant_id=request.plant_id,
+        priority=request.priority,
+        target_supplier_id=request.target_supplier_id,
+        magnitude=request.magnitude,
     )
     return result
-
