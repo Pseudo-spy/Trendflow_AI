@@ -12,6 +12,11 @@ interface QuickPlanningModalProps {
 }
 
 export const QuickPlanningModal: React.FC<QuickPlanningModalProps> = ({ isOpen, onClose }) => {
+  const [sku, setSku] = useState('');
+  const [targetDate, setTargetDate] = useState('');
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const [apiError, setApiError] = useState<string | null>(null);
+  
   const [isRunning, setIsRunning] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
   const [serviceLevel, setServiceLevel] = useState(98.5);
@@ -21,20 +26,31 @@ export const QuickPlanningModal: React.FC<QuickPlanningModalProps> = ({ isOpen, 
   const isLight = mode === 'light';
 
   const handleRunPlanning = async () => {
+    if (!sku.trim()) {
+      setValidationError('SKU is required.');
+      return;
+    }
+    if (!targetDate) {
+      setValidationError('Target Date is required.');
+      return;
+    }
+
     try {
+      setValidationError(null);
+      setApiError(null);
       setIsRunning(true);
       setIsCompleted(false);
 
       // Execute actual backend S&OP engine
-      await runSopEngine({ sku: 'TW001', target_date: '2026-10-15' });
+      const response = await runSopEngine({ sku: sku.trim(), target_date: targetDate });
       
       // Dispatch an event so page components can refresh their data
-      window.dispatchEvent(new Event('sop-run-completed'));
+      window.dispatchEvent(new CustomEvent('sop-run-completed', { detail: response }));
 
       setIsCompleted(true);
     } catch (error) {
       console.error('Failed to run SOP engine', error);
-      // Even on error, we handle it gracefully here or could add an error state to the modal
+      setApiError('Failed to execute S&OP planning. Please verify the backend is running.');
       setIsCompleted(false);
     } finally {
       setIsRunning(false);
@@ -87,6 +103,78 @@ export const QuickPlanningModal: React.FC<QuickPlanningModalProps> = ({ isOpen, 
 
           {/* Configuration Parameters */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            {/* Input 1: SKU */}
+            <div
+              style={{
+                padding: '14px',
+                borderRadius: '10px',
+                background: isLight ? '#F8FAFC' : 'rgba(255, 255, 255, 0.03)',
+                border: isLight ? '1px solid rgba(15, 23, 42, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: isLight ? '#0F172A' : '#F8FAFC' }}>
+                  Target SKU
+                </span>
+              </div>
+              <input
+                type="text"
+                placeholder="e.g. TW001"
+                value={sku}
+                onChange={(e) => {
+                  setSku(e.target.value);
+                  setValidationError(null);
+                }}
+                disabled={isRunning}
+                style={{ 
+                  width: '100%', 
+                  padding: '8px 12px', 
+                  borderRadius: '6px', 
+                  border: isLight ? '1px solid rgba(15, 23, 42, 0.1)' : '1px solid rgba(255, 255, 255, 0.1)',
+                  background: isLight ? '#FFFFFF' : 'rgba(15, 23, 42, 0.5)',
+                  color: isLight ? '#0F172A' : '#F8FAFC',
+                  fontSize: '13px',
+                  outline: 'none',
+                }}
+              />
+            </div>
+
+            {/* Input 2: Target Date */}
+            <div
+              style={{
+                padding: '14px',
+                borderRadius: '10px',
+                background: isLight ? '#F8FAFC' : 'rgba(255, 255, 255, 0.03)',
+                border: isLight ? '1px solid rgba(15, 23, 42, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: isLight ? '#0F172A' : '#F8FAFC' }}>
+                  Target Date
+                </span>
+              </div>
+              <input
+                type="date"
+                value={targetDate}
+                onChange={(e) => {
+                  setTargetDate(e.target.value);
+                  setValidationError(null);
+                }}
+                disabled={isRunning}
+                style={{ 
+                  width: '100%', 
+                  padding: '8px 12px', 
+                  borderRadius: '6px', 
+                  border: isLight ? '1px solid rgba(15, 23, 42, 0.1)' : '1px solid rgba(255, 255, 255, 0.1)',
+                  background: isLight ? '#FFFFFF' : 'rgba(15, 23, 42, 0.5)',
+                  color: isLight ? '#0F172A' : '#F8FAFC',
+                  fontSize: '13px',
+                  outline: 'none',
+                  colorScheme: isLight ? 'light' : 'dark',
+                }}
+              />
+            </div>
+
             {/* Service Level Target */}
             <div
               style={{
@@ -196,8 +284,18 @@ export const QuickPlanningModal: React.FC<QuickPlanningModalProps> = ({ isOpen, 
           </div>
 
           {/* Action Buttons */}
+          {validationError && (
+            <div style={{ color: '#EF4444', fontSize: '12px', textAlign: 'right' }}>
+              {validationError}
+            </div>
+          )}
+          {apiError && (
+            <div style={{ color: '#EF4444', fontSize: '12px', textAlign: 'right' }}>
+              {apiError}
+            </div>
+          )}
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
-            <GlowButton variant="ghost" onClick={onClose}>
+            <GlowButton variant="ghost" onClick={onClose} disabled={isRunning}>
               Cancel
             </GlowButton>
             <GlowButton
@@ -205,6 +303,7 @@ export const QuickPlanningModal: React.FC<QuickPlanningModalProps> = ({ isOpen, 
               icon={isRunning ? undefined : <Play size={15} fill="currentColor" />}
               loading={isRunning}
               onClick={handleRunPlanning}
+              disabled={isRunning}
             >
               {isRunning ? 'Solving S&OP Constraints...' : 'Execute Planning Cycle'}
             </GlowButton>

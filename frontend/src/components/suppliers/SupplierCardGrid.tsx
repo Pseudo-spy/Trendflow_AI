@@ -12,7 +12,7 @@ export const SupplierCardGrid: React.FC = () => {
   const [suppliers, setSuppliers] = useState<SupplierDetailData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeSupplier] = useState<SupplierDetailData | null>(null);
+  const [activeSupplier, setActiveSupplier] = useState<SupplierDetailData | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const { mode } = useTheme();
   const isLight = mode === 'light';
@@ -25,29 +25,11 @@ export const SupplierCardGrid: React.FC = () => {
       if (res.success && res.data) {
         // Map backend schema to existing UI schema
         const mappedSuppliers: SupplierDetailData[] = res.data.map(item => {
-          let riskScoreNum = 0;
-          if (item.risk_level === 'HIGH') riskScoreNum = 80;
-          else if (item.risk_level === 'MEDIUM') riskScoreNum = 50;
-          else riskScoreNum = 10; // LOW
-
           return {
             id: item.supplier_id,
             name: item.supplier_name,
-            category: 'N/A', // Not provided by backend
             location: item.location,
-            country: 'N/A', // Not provided by backend
-            otif: 0, // N/A
-            defectRate: 'N/A',
-            leadTime: 'N/A',
-            capacity: 0, // N/A
-            riskScore: riskScoreNum,
-            esgScore: 0, // N/A
-            certifications: [],
-            activePoCount: 0, // N/A
-            contactName: 'N/A',
-            contactEmail: 'N/A',
-            contactPhone: 'N/A',
-            moqTiers: []
+            riskLevel: item.risk_level,
           };
         });
         setSuppliers(mappedSuppliers);
@@ -104,6 +86,11 @@ export const SupplierCardGrid: React.FC = () => {
                 : '0 10px 30px rgba(0, 0, 0, 0.4), 0 0 20px rgba(6, 182, 212, 0.08)',
               position: 'relative',
               overflow: 'hidden',
+              cursor: 'pointer'
+            }}
+            onClick={() => {
+              setActiveSupplier(supplier);
+              setIsDrawerOpen(true);
             }}
           >
             {/* Top Glow Accent */}
@@ -114,9 +101,9 @@ export const SupplierCardGrid: React.FC = () => {
                 left: 0,
                 right: 0,
                 height: '2px',
-                background: supplier.riskScore > 30
+                background: supplier.riskLevel === 'HIGH'
                   ? 'linear-gradient(90deg, transparent, #F59E0B, transparent)'
-                  : 'linear-gradient(90deg, transparent, #06B6D4, transparent)',
+                  : (supplier.riskLevel === 'MEDIUM' ? 'linear-gradient(90deg, transparent, #06B6D4, transparent)' : 'linear-gradient(90deg, transparent, #16A34A, transparent)'),
               }}
             />
 
@@ -144,71 +131,27 @@ export const SupplierCardGrid: React.FC = () => {
                     </h3>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#94A3B8', marginTop: '2px' }}>
                       <MapPin size={12} color="#06B6D4" />
-                      <span>{supplier.location}, {supplier.country}</span>
+                      <span>{supplier.location}</span>
                     </div>
                   </div>
                 </div>
-                <Badge variant={supplier.riskScore > 30 ? 'amber' : 'emerald'}>
-                  {supplier.riskScore > 30 ? 'Watchlist' : 'Verified'}
+                <Badge variant={supplier.riskLevel === 'HIGH' ? 'amber' : (supplier.riskLevel === 'MEDIUM' ? 'cyan' : 'emerald')}>
+                  {supplier.riskLevel === 'HIGH' ? 'Watchlist' : (supplier.riskLevel === 'MEDIUM' ? 'Monitoring' : 'Verified')}
                 </Badge>
               </div>
 
-              {/* Tag / Category */}
+              {/* Status / ID */}
               <div style={{ display: 'flex', gap: '6px', marginBottom: '16px' }}>
-                <Badge variant="cyan">{supplier.category}</Badge>
-                <Badge variant="emerald">ESG: {supplier.esgScore}/100</Badge>
+                <Badge variant="cyan">ID: {supplier.id}</Badge>
               </div>
 
               {/* Metrics Grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '16px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(1, 1fr)', gap: '10px', marginBottom: '16px' }}>
                 <div style={{ padding: '8px', borderRadius: '8px', background: isLight ? 'rgba(15, 23, 42, 0.03)' : 'rgba(255, 255, 255, 0.03)' }}>
-                  <div style={{ fontSize: '10px', color: '#64748B' }}>OTIF Rate</div>
-                  <div style={{ fontSize: '15px', fontWeight: 800, color: '#16A34A', fontFamily: "'JetBrains Mono', monospace" }}>
-                    {supplier.otif}%
+                  <div style={{ fontSize: '10px', color: '#64748B' }}>Risk Level</div>
+                  <div style={{ fontSize: '15px', fontWeight: 800, color: supplier.riskLevel === 'HIGH' ? '#F59E0B' : (supplier.riskLevel === 'MEDIUM' ? '#06B6D4' : '#16A34A'), fontFamily: "'JetBrains Mono', monospace" }}>
+                    {supplier.riskLevel}
                   </div>
-                </div>
-
-                <div style={{ padding: '8px', borderRadius: '8px', background: isLight ? 'rgba(15, 23, 42, 0.03)' : 'rgba(255, 255, 255, 0.03)' }}>
-                  <div style={{ fontSize: '10px', color: '#64748B' }}>Lead Time</div>
-                  <div style={{ fontSize: '15px', fontWeight: 800, color: '#6366F1', fontFamily: "'JetBrains Mono', monospace" }}>
-                    {supplier.leadTime}
-                  </div>
-                </div>
-
-                <div style={{ padding: '8px', borderRadius: '8px', background: isLight ? 'rgba(15, 23, 42, 0.03)' : 'rgba(255, 255, 255, 0.03)' }}>
-                  <div style={{ fontSize: '10px', color: '#64748B' }}>Risk Score</div>
-                  <div style={{ fontSize: '15px', fontWeight: 800, color: supplier.riskScore > 30 ? '#F59E0B' : '#16A34A', fontFamily: "'JetBrains Mono', monospace" }}>
-                    {supplier.riskScore}/100
-                  </div>
-                </div>
-              </div>
-
-              {/* Capacity Progress Bar */}
-              <div style={{ marginBottom: '16px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '4px' }}>
-                  <span style={{ color: '#64748B' }}>Allocated Capacity</span>
-                  <span style={{ fontWeight: 700, color: isLight ? '#0F172A' : '#F8FAFC', fontFamily: "'JetBrains Mono', monospace" }}>
-                    {supplier.capacity}%
-                  </span>
-                </div>
-                <div
-                  style={{
-                    width: '100%',
-                    height: '5px',
-                    borderRadius: '3px',
-                    background: isLight ? 'rgba(15, 23, 42, 0.08)' : 'rgba(255, 255, 255, 0.08)',
-                    overflow: 'hidden',
-                  }}
-                >
-                  <div
-                    style={{
-                      width: `${supplier.capacity}%`,
-                      height: '100%',
-                      background: supplier.capacity > 95
-                        ? 'linear-gradient(90deg, #F59E0B, #F43F5E)'
-                        : 'linear-gradient(90deg, #06B6D4, #16A34A)',
-                    }}
-                  />
                 </div>
               </div>
             </div>
@@ -216,16 +159,19 @@ export const SupplierCardGrid: React.FC = () => {
             {/* Action Footer */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: isLight ? '1px solid rgba(15, 23, 42, 0.08)' : '1px solid rgba(255, 255, 255, 0.06)' }}>
               <span style={{ fontSize: '11px', color: '#94A3B8' }}>
-                {supplier.activePoCount} Active Purchase Orders
+                Click to view details
               </span>
               <GlowButton
                 variant="ghost"
                 size="sm"
                 icon={<ExternalLink size={12} />}
-                onClick={() => {}}
-                disabled={true}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveSupplier(supplier);
+                  setIsDrawerOpen(true);
+                }}
               >
-                Backend Blocked
+                View
               </GlowButton>
             </div>
           </motion.div>

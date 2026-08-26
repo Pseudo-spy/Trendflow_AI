@@ -51,7 +51,7 @@ const getVariantStyles = (variant: BadgeVariant, isLight: boolean) => {
       dot: isLight ? '#94A3B8' : '#374151',
     },
   };
-  return styles[variant];
+  return styles[variant] || styles.muted;
 };
 
 export const Badge: React.FC<BadgeProps> = ({

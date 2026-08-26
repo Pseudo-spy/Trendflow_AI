@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { GlowButton } from '../ui/GlowButton';
 import { Badge } from '../ui/Badge';
 import { SceneCanvas } from '../../three/SceneCanvas';
@@ -17,18 +17,20 @@ export const HeroSection: React.FC = () => {
   const isTablet = useMediaQuery('(max-width: 1024px)');
   const isMobile = useMediaQuery('(max-width: 768px)');
 
+  const prefersReducedMotion = useReducedMotion();
+
   return (
     <section style={{ position: 'relative', marginBottom: '80px', paddingTop: '20px' }}>
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: isTablet ? '1fr' : '1fr 1fr',
-          gap: '48px',
+          gridTemplateColumns: isTablet ? '1fr' : '0.85fr 1.15fr',
+          gap: '40px',
           alignItems: 'center',
         }}
       >
         {/* LEFT: Text Content */}
-        <div style={{ paddingRight: '20px' }}>
+        <div style={{ paddingRight: isTablet ? '0' : '20px' }}>
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
@@ -56,17 +58,30 @@ export const HeroSection: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
             style={{
-              fontSize: isMobile ? '40px' : '54px',
+              fontSize: 'clamp(32px, 4.5vw, 54px)',
               fontWeight: 900,
               color: isLight ? '#0F172A' : '#FFFFFF',
               letterSpacing: '-0.03em',
               lineHeight: '1.1',
               marginBottom: '24px',
+              display: 'flex',
+              flexDirection: 'column',
             }}
           >
-            PLAN SMARTER.<br />
-            SOURCE BETTER.<br />
-            <span style={{ color: '#16A34A' }}>MOVE FASTER.</span>
+            <span>POWER YOUR</span>
+            
+            <div style={{ position: 'relative' }}>
+               {/* Hidden ghost text to ensure container always has width and height for the longest word */}
+               <span style={{ visibility: 'hidden', pointerEvents: 'none', whiteSpace: 'nowrap' }}>
+                 PROCUREMENT|
+               </span>
+               <div style={{ position: 'absolute', top: 0, left: 0, whiteSpace: 'nowrap' }}>
+                 <TypewriterHeadline prefersReducedMotion={prefersReducedMotion} />
+               </div>
+            </div>
+
+            <span>WITH</span>
+            <span>TRENDFLOW AI</span>
           </motion.h1>
 
           <motion.p
@@ -125,7 +140,7 @@ export const HeroSection: React.FC = () => {
           style={{
             position: 'relative',
             width: '100%',
-            height: isMobile ? '280px' : '420px',
+            height: isMobile ? '340px' : '500px',
             borderRadius: '24px',
             overflow: 'hidden',
             boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
@@ -149,7 +164,7 @@ export const HeroSection: React.FC = () => {
 
           {/* 3D Scene Overlay (Digital Twin) */}
           <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 2 }}>
-            <SceneCanvas enableOrbit={true} enableParallax={true} cameraPosition={[0, 4, 16]} fov={44}>
+            <SceneCanvas enableOrbit={true} enableParallax={true} cameraPosition={[0, 4.5, 22]} fov={42}>
               <React.Suspense fallback={null}>
                 <LandingHero3D onHoverNode={setInspectedNode} />
               </React.Suspense>
@@ -215,5 +230,62 @@ export const HeroSection: React.FC = () => {
         </motion.div>
       </div>
     </section>
+  );
+};
+
+const typewriterPhrases = ["PLANNING", "FORECASTING", "PROCUREMENT", "DECISIONS"];
+
+const TypewriterHeadline: React.FC<{ prefersReducedMotion: boolean | null }> = ({ prefersReducedMotion }) => {
+  const [phraseIndex, setPhraseIndex] = useState(0);
+  const [charIndex, setCharIndex] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showCaret, setShowCaret] = useState(true);
+
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setShowCaret(prev => !prev);
+    }, 550);
+    return () => clearInterval(interval);
+  }, []);
+
+  React.useEffect(() => {
+    if (prefersReducedMotion) return;
+
+    const currentPhrase = typewriterPhrases[phraseIndex];
+    let timeout: ReturnType<typeof setTimeout>;
+
+    if (!isDeleting && charIndex === currentPhrase.length) {
+      timeout = setTimeout(() => setIsDeleting(true), 1900);
+    } else if (isDeleting && charIndex === 0) {
+      timeout = setTimeout(() => {
+        setIsDeleting(false);
+        setPhraseIndex((prev) => (prev + 1) % typewriterPhrases.length);
+      }, 350);
+    } else {
+      const delay = isDeleting ? 50 : 85;
+      timeout = setTimeout(() => {
+        setCharIndex((prev) => prev + (isDeleting ? -1 : 1));
+      }, delay);
+    }
+
+    return () => clearTimeout(timeout);
+  }, [charIndex, isDeleting, phraseIndex, prefersReducedMotion]);
+
+  if (prefersReducedMotion) {
+    return <span style={{ color: '#16A34A' }}>PLANNING</span>;
+  }
+
+  const currentText = typewriterPhrases[phraseIndex].substring(0, charIndex);
+  
+  return (
+    <span style={{ color: '#16A34A', display: 'inline-flex', alignItems: 'center' }}>
+      {currentText}
+      <span style={{ 
+        opacity: showCaret ? 1 : 0, 
+        marginLeft: '2px', 
+        color: '#16A34A',
+        fontWeight: 400 
+      }}>|</span>
+    </span>
   );
 };

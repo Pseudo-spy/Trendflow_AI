@@ -21,7 +21,7 @@ export const MultiHorizonForecastChart: React.FC = () => {
   const [chartData, setChartData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   const [runningForecast, setRunningForecast] = useState(false);
   const [forecastMessage, setForecastMessage] = useState<string | null>(null);
 
@@ -177,47 +177,47 @@ export const MultiHorizonForecastChart: React.FC = () => {
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isLight ? 'rgba(15, 23, 42, 0.05)' : 'rgba(255, 255, 255, 0.05)'} />
-            <XAxis 
-              dataKey="month" 
-              axisLine={false} 
-              tickLine={false} 
-              tick={{ fontSize: 11, fill: '#64748B' }} 
-              dy={10} 
+            <XAxis
+              dataKey="month"
+              axisLine={false}
+              tickLine={false}
+              tick={{ fontSize: 11, fill: '#64748B' }}
+              dy={10}
             />
-            <YAxis 
-              axisLine={false} 
-              tickLine={false} 
-              tick={{ fontSize: 11, fill: '#64748B' }} 
+            <YAxis
+              axisLine={false}
+              tickLine={false}
+              tick={{ fontSize: 11, fill: '#64748B' }}
               tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
               dx={-10}
             />
-            <Tooltip 
-              contentStyle={{ 
-                backgroundColor: isLight ? '#FFFFFF' : '#0F172A', 
+            <Tooltip
+              contentStyle={{
+                backgroundColor: isLight ? '#FFFFFF' : '#0F172A',
                 border: isLight ? '1px solid #E2E8F0' : '1px solid rgba(255, 255, 255, 0.1)',
                 borderRadius: '8px',
                 fontSize: '12px'
-              }} 
+              }}
             />
-            <Area 
+            <Area
               animationDuration={400}
-              type="monotone" 
-              dataKey="actual" 
-              stroke="#34D399" 
+              type="monotone"
+              dataKey="actual"
+              stroke="#34D399"
               strokeWidth={2}
-              fillOpacity={1} 
-              fill="url(#colorActual)" 
+              fillOpacity={1}
+              fill="url(#colorActual)"
               name="Historical Actuals"
             />
-            
-            <Area 
+
+            <Area
               animationDuration={400}
-              type="monotone" 
-              dataKey="forecast" 
-              stroke="#16A34A" 
+              type="monotone"
+              dataKey="forecast"
+              stroke="#16A34A"
               strokeWidth={3}
-              fillOpacity={1} 
-              fill="url(#colorForecast)" 
+              fillOpacity={1}
+              fill="url(#colorForecast)"
               strokeDasharray="4 4"
               name="Projected Forecast"
             />

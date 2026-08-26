@@ -1,6 +1,31 @@
 import React from 'react';
-import { MetricCard } from '../ui/MetricCard';
-import { ShieldCheck, Boxes, Activity, DollarSign, CheckCircle2 } from 'lucide-react';
+import { CinematicCard } from '../ui/CinematicCard';
+import { 
+  TrendingUp, 
+  Layers, 
+  Boxes, 
+  Activity, 
+  AlertTriangle, 
+  CheckCircle2,
+  ShieldCheck,
+  AlertCircle
+} from 'lucide-react';
+
+const PendingKpiCard: React.FC<{ label: string; icon: React.ReactNode; glowColor: any }> = ({ label, icon, glowColor }) => (
+  <CinematicCard glowColor={glowColor}>
+    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#07150E', border: '1px solid #1B3B2B', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#16A34A' }}>
+          {icon}
+        </div>
+        <span style={{ fontSize: '13px', fontWeight: 600, color: '#86A795' }}>{label}</span>
+      </div>
+    </div>
+    <div style={{ marginTop: '16px', fontSize: '14px', color: '#64748B', fontWeight: 500 }}>
+      Backend Pending
+    </div>
+  </CinematicCard>
+);
 
 export const SopKpis: React.FC = () => {
   return (
@@ -12,58 +37,14 @@ export const SopKpis: React.FC = () => {
         marginBottom: '28px',
       }}
     >
-      <MetricCard
-        label="Service Level Target"
-        value={98.8}
-        suffix="%"
-        decimals={1}
-        change={1.1}
-        changeLabel="vs historical baseline"
-        icon={<ShieldCheck size={16} />}
-        glowColor="emerald"
-      />
-
-      <MetricCard
-        label="Aggregate Supply Plan"
-        value={184200}
-        suffix=" units"
-        decimals={0}
-        statusBadge={{ label: '100% Demand Match', variant: 'cyan' }}
-        icon={<Boxes size={16} />}
-        glowColor="cyan"
-      />
-
-      <MetricCard
-        label="Factory Line Utilization"
-        value={92.6}
-        suffix="%"
-        decimals={1}
-        change={2.4}
-        changeLabel="optimal pacing"
-        icon={<Activity size={16} />}
-        glowColor="indigo"
-      />
-
-      <MetricCard
-        label="Safety Buffer Capital"
-        value={3240000}
-        prefix="$"
-        decimals={0}
-        change={-6.2}
-        changeLabel="holding reduction"
-        icon={<DollarSign size={16} />}
-        glowColor="emerald"
-      />
-
-      <MetricCard
-        label="Stockout Vulnerability"
-        value={0.8}
-        suffix="%"
-        decimals={1}
-        statusBadge={{ label: 'Near Zero', variant: 'emerald' }}
-        icon={<CheckCircle2 size={16} />}
-        glowColor="emerald"
-      />
+      <PendingKpiCard label="Demand Requirement" icon={<TrendingUp size={16} />} glowColor="cyan" />
+      <PendingKpiCard label="Material Requirement" icon={<Layers size={16} />} glowColor="indigo" />
+      <PendingKpiCard label="Available Inventory" icon={<Boxes size={16} />} glowColor="emerald" />
+      <PendingKpiCard label="Capacity Utilization" icon={<Activity size={16} />} glowColor="amber" />
+      <PendingKpiCard label="Supply Gap" icon={<AlertTriangle size={16} />} glowColor="rose" />
+      <PendingKpiCard label="Stockout Risk" icon={<AlertCircle size={16} />} glowColor="rose" />
+      <PendingKpiCard label="Service Level" icon={<ShieldCheck size={16} />} glowColor="emerald" />
+      <PendingKpiCard label="Plan Status" icon={<CheckCircle2 size={16} />} glowColor="cyan" />
     </div>
   );
 };

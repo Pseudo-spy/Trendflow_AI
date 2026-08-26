@@ -5,6 +5,7 @@ import {
   LayoutDashboard,
   TrendingUp,
   Boxes,
+  PackageSearch,
   Cpu,
   Truck,
   ShieldAlert,
@@ -27,6 +28,7 @@ const navItems: NavItem[] = [
   { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={18} /> },
   { name: 'Demand Planning', path: '/demand-planning', icon: <TrendingUp size={18} />, badge: 'AI' },
   { name: 'S&OP Planning', path: '/sop', icon: <Boxes size={18} /> },
+  { name: 'Inventory Planning', path: '/inventory', icon: <PackageSearch size={18} /> },
   { name: 'Procurement', path: '/procurement', icon: <Cpu size={18} />, badge: 'MILP' },
   { name: 'Suppliers', path: '/suppliers', icon: <Truck size={18} /> },
   { name: 'Risk Analysis', path: '/risk', icon: <ShieldAlert size={18} />, badge: 'Radar' },
@@ -54,12 +56,12 @@ const SidebarItem: React.FC<{ item: NavItem; isLight: boolean; onClick?: () => v
         fontWeight: isActive ? 700 : 500,
         color: isActive ? '#FFFFFF' : isLight ? '#475569' : '#86A795',
         background: isActive
-          ? '#16A34A'
+          ? (isHovered ? 'linear-gradient(135deg, #14532D 0%, #064E3B 100%)' : 'linear-gradient(135deg, #16A34A 0%, #15803D 100%)')
           : (isHovered ? (isLight ? '#F1F5F9' : '#1A241E') : 'transparent'),
         border: isActive
-          ? '1px solid #15803D'
+          ? (isHovered ? '1px solid #14532D' : '1px solid #22C55E')
           : '1px solid transparent',
-        boxShadow: isActive ? '0 1px 3px rgba(22, 163, 74, 0.4)' : 'none',
+        boxShadow: isActive ? (isHovered ? 'none' : '0 0 10px rgba(22, 163, 74, 0.25)') : 'none',
         position: 'relative',
         transition: 'all 0.2s ease',
       })}

@@ -15,9 +15,9 @@ export const SopPlanningPage: React.FC = () => {
   return (
     <PageTransitionLayout>
       <PageHeader
-        title="Integrated S&OP Command Center"
-        subtitle="End-to-end multi-echelon inventory balancing, factory capacity matching & dynamic safety buffer orchestration"
-        badgeText="S&OP Engine • Active Cycle"
+        title="S&OP Planning"
+        subtitle="Material requirement planning and cross-functional supply visibility."
+        badgeText="S&OP Engine"
         badgeVariant="emerald"
       />
 

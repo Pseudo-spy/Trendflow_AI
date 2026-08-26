@@ -9,15 +9,13 @@ export const SuppliersPage: React.FC = () => {
     <PageTransitionLayout>
       <PageHeader
         title="Supplier Intelligence Center"
-        subtitle="End-to-end partner directory with real-time OTIF tracking, ESG scores, capacity telemetry, and contract scorecards"
-        badgeText="18 Tier-1/Tier-2 Partners"
-        badgeVariant="cyan"
+        subtitle="End-to-end partner directory and risk assessment."
       />
 
-      {/* KPI Ribbon */}
+      {/* KPI Ribbon - VISUAL_DECISION_REQUIRED */}
       <SupplierKpis />
 
-      {/* Supplier Grid with 3D Hover & Drawer */}
+      {/* Supplier Grid with Drawer */}
       <SupplierCardGrid />
     </PageTransitionLayout>
   );
