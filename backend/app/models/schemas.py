@@ -62,6 +62,23 @@ class MaterialRequirementContract(BaseModel):
     plant_id: str
     priority: str
 
+    # P2 S&OP planning information
+    sku: Optional[str] = None
+    forecast_quantity: Optional[int] = None
+    forecast_confidence: Optional[float] = None
+    forecast_model_version: Optional[str] = None
+
+    inventory_quantity: Optional[int] = None
+    reserved_quantity: Optional[int] = None
+    available_inventory: Optional[int] = None
+    net_demand: Optional[int] = None
+
+    capacity_units: Optional[int] = None
+    available_capacity: Optional[int] = None
+    production_requirement: Optional[int] = None
+    capacity_gap: Optional[int] = None
+    capacity_status: Optional[str] = None
+
 
 # --- Suppliers & Materials Schemas ---
 class SupplierItem(BaseModel):
