@@ -1,3 +1,5 @@
+from app.repositories.inventory import get_inventory_for_sku_plant
+from app.repositories.bom import get_material_for_sku, calculate_required_quantity
 from typing import Optional, List, Dict, Any
 
 from app.core.database import supabase
@@ -172,9 +174,18 @@ def run_sop_engine(
     #
     # We deliberately do NOT invent a raw-material calculation here
     # because the current project has no SKU -> material/BOM mapping.
+       # 5. SKU -> material (BOM) mapping, derived from product category.
+    # See app/repositories/bom.py for the category -> material lookup
+    # and the usage_factor estimates (synthetic — no real BOM data exists yet).
+    bom_info = get_material_for_sku(sku)
+    required_quantity = calculate_required_quantity(
+        net_demand=net_demand,
+        usage_factor=bom_info["usage_factor"],
+    )
+
     result = {
-        "material_id": "MAT001",
-        "required_quantity": 30000,
+        "material_id": bom_info["material_id"],
+        "required_quantity": required_quantity,
         "required_date": target_date,
         "plant_id": plant_id,
         "priority": priority,
