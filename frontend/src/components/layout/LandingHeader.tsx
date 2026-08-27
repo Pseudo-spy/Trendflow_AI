@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { Layers, LogIn, Sparkles, Menu } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme';
-import { ThemeToggle } from '../ui/ThemeToggle';
 import { GlowButton } from '../ui/GlowButton';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 
@@ -68,7 +67,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({ onRequestAccess })
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '0 28px',
+        padding: '0 40px',
         gap: '16px',
         width: '100%',
         boxSizing: 'border-box',
@@ -135,9 +134,6 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({ onRequestAccess })
 
       {/* Action Controls */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
-        {/* Theme Toggle */}
-        <div className="hide-mobile"><ThemeToggle /></div>
-
         {isTablet && (
           <button
             style={{

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   FloatingObject,
   HoverableObject,
@@ -8,22 +8,82 @@ import {
   PulseEffect,
   HologramGrid,
 } from '../three';
-import type { SupplyChainNodeData } from '../types/three';
 import { useTheme } from '../hooks/useTheme';
-
-import { procurementSuppliers } from './mock3DData';
+import type { OptimizationResponse } from '../services/api/procurementApi';
+import type { Procurement3DSupplier } from '../components/procurement/ProcurementHero';
+import type { SupplyChainNodeData } from '../types/three';
 
 interface ProcurementAllocation3DProps {
-  selectedSupplier: SupplyChainNodeData | null;
-  onSelectSupplier: (supp: SupplyChainNodeData | null) => void;
+  suppliers: Procurement3DSupplier[];
+  result: OptimizationResponse | null;
+  selectedSupplierId: string | null;
+  onSelectSupplier: (id: string | null) => void;
 }
 
 export const ProcurementAllocation3D: React.FC<ProcurementAllocation3DProps> = ({
-  selectedSupplier,
+  suppliers,
+  result,
+  selectedSupplierId,
   onSelectSupplier,
 }) => {
   const { mode } = useTheme();
   const isLight = mode === 'light';
+
+  // Helper to determine the visual packet count (thickness) based on percentage
+  const getPacketCount = (percentage: number) => {
+    return Math.max(1, Math.ceil(percentage / 15)); // roughly 1 to 6 packets max
+  };
+
+  // Helper to determine flow speed based on percentage
+  const getSpeed = (percentage: number) => {
+    return 1.2 + (percentage / 100) * 0.8; // 1.2x to 2.0x
+  };
+
+  const getLineColor = (percentage: number) => {
+    if (percentage > 30) return isLight ? '#0284C7' : '#06B6D4';
+    if (percentage > 15) return '#16A34A';
+    if (percentage > 5) return '#F59E0B';
+    return isLight ? '#4F46E5' : '#6366F1';
+  };
+
+  // Distinct color palette for up to 8 suppliers
+  const distinctColors = [
+    { primary: '#10B981', glow: 'rgba(16, 185, 129, 0.5)', emissiveDark: '#059669', emissiveLight: '#10B981' }, // Emerald
+    { primary: '#8B5CF6', glow: 'rgba(139, 92, 246, 0.5)', emissiveDark: '#6D28D9', emissiveLight: '#8B5CF6' }, // Violet
+    { primary: '#F59E0B', glow: 'rgba(245, 158, 11, 0.5)', emissiveDark: '#B45309', emissiveLight: '#F59E0B' }, // Amber
+    { primary: '#EC4899', glow: 'rgba(236, 72, 153, 0.5)', emissiveDark: '#BE185D', emissiveLight: '#EC4899' }, // Pink
+    { primary: '#0EA5E9', glow: 'rgba(14, 165, 233, 0.5)', emissiveDark: '#0369A1', emissiveLight: '#0EA5E9' }, // Sky
+    { primary: '#F43F5E', glow: 'rgba(244, 63, 94, 0.5)', emissiveDark: '#BE123C', emissiveLight: '#F43F5E' }, // Rose
+    { primary: '#14B8A6', glow: 'rgba(20, 184, 166, 0.5)', emissiveDark: '#0F766E', emissiveLight: '#14B8A6' }, // Teal
+    { primary: '#F97316', glow: 'rgba(249, 115, 22, 0.5)', emissiveDark: '#C2410C', emissiveLight: '#F97316' }, // Orange
+  ];
+
+  // Derive visual-only nodes for the shared GlowingNode component
+  // without exposing fake business data to the rest of the application.
+  const visualNodes = useMemo(() => {
+    return suppliers.map((supp, index): SupplyChainNodeData => {
+      // VISUAL COLOR ONLY thresholding for GlowingNode component
+      const visualStatus = supp.riskScore <= 0.20 ? 'optimal' : supp.riskScore <= 0.50 ? 'warning' : 'critical';
+      const nodeColor = distinctColors[index % distinctColors.length];
+      
+      return {
+        id: supp.supplierId,
+        name: supp.supplierId,
+        type: 'supplier',
+        position: supp.position,
+        status: visualStatus,
+        customColor: nodeColor,
+        
+        // Blanking out unused fields so they don't render fake data
+        capacity: 0,
+        throughput: 0,
+        leadTimeDays: 0,
+        riskScore: 0,
+        city: '',
+        country: '',
+      };
+    });
+  }, [suppliers]);
 
   return (
     <>
@@ -33,12 +93,12 @@ export const ProcurementAllocation3D: React.FC<ProcurementAllocation3DProps> = (
       {/* Ambient Data Particles */}
       <DataParticle count={220} radius={18} speed={0.25} />
 
-      {/* Central Order Allocation Hub: 125,000 Units */}
+      {/* Central Order Allocation Hub */}
       <FloatingObject position={[0, 0, 0]} speed={1.2} floatIntensity={0.15} rotationSpeed={0.3}>
         <HoverableObject
           hoverScale={1.2}
-          tooltipText="OR-TOOLS ORDER DISPATCH HUB"
-          tooltipSubtext="125,000 Units Allocated • $2.20M Spend"
+          tooltipText={result ? "PROCUREMENT ALLOCATION HUB" : "AWAITING ALLOCATION"}
+          tooltipSubtext={result ? `${result.total_allocated.toLocaleString()} Units Allocated • ${result.total_cost.toLocaleString()} Cost` : "Run Procurement to visualize"}
           onClick={() => onSelectSupplier(null)}
         >
           <mesh>
@@ -65,63 +125,38 @@ export const ProcurementAllocation3D: React.FC<ProcurementAllocation3DProps> = (
       </FloatingObject>
 
       {/* Allocation Energy Beams from Central Hub to Each Supplier */}
-      {/* Central -> Supplier A (Taipei: 38.4% - Thick 4 packet flow) */}
-      <ConnectionLine
-        start={[0, 0, 0]}
-        end={procurementSuppliers[0].position}
-        packetCount={selectedSupplier?.id === 'supp-taipei' ? 5 : 4}
-        speed={selectedSupplier?.id === 'supp-taipei' ? 2.8 : 1.8}
-        color={isLight ? '#0284C7' : '#06B6D4'}
-      />
-      {/* Central -> Supplier B (Shenzhen: 28.8% - 3 packet flow) */}
-      <ConnectionLine
-        start={[0, 0, 0]}
-        end={procurementSuppliers[1].position}
-        packetCount={selectedSupplier?.id === 'supp-shenzhen' ? 5 : 3}
-        speed={selectedSupplier?.id === 'supp-shenzhen' ? 2.8 : 1.6}
-        color="#16A34A"
-      />
-      {/* Central -> Supplier C (Hanoi: 19.2% - 2 packet flow) */}
-      <ConnectionLine
-        start={[0, 0, 0]}
-        end={procurementSuppliers[2].position}
-        packetCount={selectedSupplier?.id === 'supp-hanoi' ? 5 : 2}
-        speed={selectedSupplier?.id === 'supp-hanoi' ? 2.8 : 1.4}
-        color="#F59E0B"
-      />
-      {/* Central -> Supplier D (Frankfurt: 8.0% - 2 packet flow) */}
-      <ConnectionLine
-        start={[0, 0, 0]}
-        end={procurementSuppliers[3].position}
-        packetCount={selectedSupplier?.id === 'supp-frankfurt' ? 5 : 2}
-        speed={selectedSupplier?.id === 'supp-frankfurt' ? 2.8 : 1.4}
-        color={isLight ? '#4F46E5' : '#6366F1'}
-      />
-      {/* Central -> Supplier E (Americas: 5.6% - 1 packet flow) */}
-      <ConnectionLine
-        start={[0, 0, 0]}
-        end={procurementSuppliers[4].position}
-        packetCount={selectedSupplier?.id === 'supp-americas' ? 5 : 1}
-        speed={selectedSupplier?.id === 'supp-americas' ? 2.8 : 1.2}
-        color="#06B6D4"
-      />
+      {suppliers.map((supp) => {
+        const percentage = supp.percentage;
+        const isSelected = selectedSupplierId === supp.supplierId;
+        
+        return (
+          <ConnectionLine
+            key={`line-${supp.supplierId}`}
+            start={[0, 0, 0]}
+            end={supp.position}
+            packetCount={isSelected ? getPacketCount(percentage) + 1 : getPacketCount(percentage)}
+            speed={isSelected ? getSpeed(percentage) + 0.5 : getSpeed(percentage)}
+            color={getLineColor(percentage)}
+          />
+        );
+      })}
 
-      {/* Render 5 Supplier 3D Nodes */}
-      {procurementSuppliers.map((supp, index) => {
-        const isSelected = selectedSupplier?.id === supp.id;
+      {/* Render Dynamic Supplier 3D Nodes */}
+      {visualNodes.map((vNode, index) => {
+        const isSelected = selectedSupplierId === vNode.id;
 
         return (
           <FloatingObject
-            key={supp.id}
+            key={vNode.id}
             position={[0, 0, 0]}
             speed={1.1 + (index % 3) * 0.25}
             floatIntensity={0.12}
             rotationSpeed={0.12}
           >
             <GlowingNode
-              node={supp}
+              node={vNode}
               isSelected={isSelected}
-              onSelect={(s) => onSelectSupplier(s)}
+              onSelect={(s) => onSelectSupplier(s?.id || null)}
             />
           </FloatingObject>
         );

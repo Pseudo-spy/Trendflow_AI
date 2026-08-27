@@ -1,8 +1,20 @@
 import React from 'react';
 import { MetricCard } from '../ui/MetricCard';
-import { Users, CheckCircle2, Clock, Leaf } from 'lucide-react';
+import { Users, ShieldCheck, ShieldAlert, AlertTriangle } from 'lucide-react';
 
-export const SupplierKpis: React.FC = () => {
+interface SupplierKpisProps {
+  totalCount: number;
+  lowRiskCount: number;
+  mediumRiskCount: number;
+  highRiskCount: number;
+}
+
+export const SupplierKpis: React.FC<SupplierKpisProps> = ({
+  totalCount,
+  lowRiskCount,
+  mediumRiskCount,
+  highRiskCount,
+}) => {
   return (
     <div
       style={{
@@ -13,45 +25,42 @@ export const SupplierKpis: React.FC = () => {
       }}
     >
       <MetricCard
-        label="Active Tier-1 Suppliers"
-        value={18}
+        label="Total Suppliers"
+        value={totalCount}
         suffix=" vendors"
         decimals={0}
-        statusBadge={{ label: '100% Audited', variant: 'cyan' }}
         icon={<Users size={16} />}
         glowColor="cyan"
       />
 
       <MetricCard
-        label="Network OTIF Delivery Rate"
-        value={97.4}
-        suffix="%"
-        decimals={1}
-        change={2.1}
-        changeLabel="YoY performance"
-        icon={<CheckCircle2 size={16} />}
+        label="Low Risk Suppliers"
+        value={lowRiskCount}
+        suffix=" vendors"
+        decimals={0}
+        statusBadge={{ label: 'Verified', variant: 'emerald' }}
+        icon={<ShieldCheck size={16} />}
         glowColor="emerald"
       />
 
       <MetricCard
-        label="Average Transit Lead Time"
-        value={6.4}
-        suffix=" days"
-        decimals={1}
-        change={-1.2}
-        changeLabel="lead time reduction"
-        icon={<Clock size={16} />}
+        label="Medium Risk Suppliers"
+        value={mediumRiskCount}
+        suffix=" vendors"
+        decimals={0}
+        statusBadge={{ label: 'Monitoring', variant: 'cyan' }}
+        icon={<ShieldAlert size={16} />}
         glowColor="indigo"
       />
 
       <MetricCard
-        label="Average ESG Sustainability"
-        value={92.8}
-        suffix=" / 100"
-        decimals={1}
-        statusBadge={{ label: 'Gold Standard', variant: 'emerald' }}
-        icon={<Leaf size={16} />}
-        glowColor="emerald"
+        label="High Risk Suppliers"
+        value={highRiskCount}
+        suffix=" vendors"
+        decimals={0}
+        statusBadge={{ label: 'Watchlist', variant: 'amber' }}
+        icon={<AlertTriangle size={16} />}
+        glowColor="amber"
       />
     </div>
   );

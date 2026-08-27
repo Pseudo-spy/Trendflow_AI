@@ -4,10 +4,46 @@ import { Sidebar } from '../components/layout/Sidebar';
 import { Header } from '../components/layout/Header';
 import { CinematicBackground } from './CinematicBackground';
 import { useMediaQuery } from '../hooks/useMediaQuery';
+import { type MaterialRequirementContract } from '../services/api/sopApi';
+import { type OptimizationResponse } from '../services/api/procurementApi';
+import { type RiskPredictionResponse } from '../services/api/riskApi';
+import { type ScenarioRunResponse } from '../services/api/scenarioApi';
+
+export interface AppOutletContext {
+  latestSopResult: MaterialRequirementContract | null;
+  setLatestSopResult: (result: MaterialRequirementContract | null) => void;
+  latestProcurementResult: OptimizationResponse | null;
+  setLatestProcurementResult: (result: OptimizationResponse | null) => void;
+  latestRiskResult: RiskPredictionResponse | null;
+  setLatestRiskResult: (result: RiskPredictionResponse | null) => void;
+  latestScenarioResult: ScenarioRunResponse | null;
+  setLatestScenarioResult: (result: ScenarioRunResponse | null) => void;
+}
 
 export const AppLayout: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const isTablet = useMediaQuery('(max-width: 1024px)');
+  
+  // Session States
+  const [latestSopResult, setLatestSopResult] = useState<MaterialRequirementContract | null>(() => {
+    // TODO: Replace sessionStorage fallback with GET /api/sop/latest when persistent backend latest-result endpoint is available.
+    try {
+      const stored = sessionStorage.getItem('trendflow.latestSopResult');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed && parsed.material_id && typeof parsed.required_quantity === 'number' && parsed.required_date && parsed.plant_id && parsed.priority) {
+          return parsed as MaterialRequirementContract;
+        }
+        sessionStorage.removeItem('trendflow.latestSopResult');
+      }
+    } catch (e) {
+      sessionStorage.removeItem('trendflow.latestSopResult');
+    }
+    return null;
+  });
+  const [latestProcurementResult, setLatestProcurementResult] = useState<OptimizationResponse | null>(null);
+  const [latestRiskResult, setLatestRiskResult] = useState<RiskPredictionResponse | null>(null);
+  const [latestScenarioResult, setLatestScenarioResult] = useState<ScenarioRunResponse | null>(null);
 
   return (
     <div
@@ -54,7 +90,11 @@ export const AppLayout: React.FC = () => {
           width: isTablet ? '100%' : 'calc(100% - 270px)',
         }}
       >
-        <Header onMenuClick={() => setIsSidebarOpen(true)} isTablet={isTablet} />
+        <Header 
+          onMenuClick={() => setIsSidebarOpen(true)} 
+          isTablet={isTablet} 
+          onSopPlanningComplete={(result) => setLatestSopResult(result)}
+        />
 
         <main
           style={{
@@ -66,9 +106,16 @@ export const AppLayout: React.FC = () => {
             position: 'relative',
           }}
         >
-          <Outlet />
+          <Outlet context={{ 
+            latestSopResult, setLatestSopResult,
+            latestProcurementResult, setLatestProcurementResult,
+            latestRiskResult, setLatestRiskResult,
+            latestScenarioResult, setLatestScenarioResult
+          } satisfies AppOutletContext} />
         </main>
       </div>
     </div>
   );
 };
+
+export default AppLayout;

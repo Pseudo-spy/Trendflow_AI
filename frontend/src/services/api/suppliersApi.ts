@@ -1,7 +1,7 @@
 import { apiClient } from './client';
 
 export interface SupplierItem {
-  id: number;
+  id?: number;
   supplier_id: string;
   supplier_name: string;
   location: string;

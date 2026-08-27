@@ -28,7 +28,7 @@ const navItems: NavItem[] = [
   { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={18} /> },
   { name: 'Demand Planning', path: '/demand-planning', icon: <TrendingUp size={18} />, badge: 'AI' },
   { name: 'S&OP Planning', path: '/sop', icon: <Boxes size={18} /> },
-  { name: 'Inventory Planning', path: '/inventory', icon: <PackageSearch size={18} /> },
+  { name: 'Inventory View', path: '/inventory', icon: <PackageSearch size={18} /> },
   { name: 'Procurement', path: '/procurement', icon: <Cpu size={18} />, badge: 'MILP' },
   { name: 'Suppliers', path: '/suppliers', icon: <Truck size={18} /> },
   { name: 'Risk Analysis', path: '/risk', icon: <ShieldAlert size={18} />, badge: 'Radar' },
@@ -118,7 +118,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isTablet }) =
 
   const handleLogout = async () => {
     await logout();
-    navigate('/login');
+    navigate('/');
   };
 
   return (

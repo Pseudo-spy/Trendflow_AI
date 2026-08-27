@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import type { UserSession, LoginCredentials, AuthState } from '../types/auth';
 import { authService } from '../services/authService';
-import { supabase } from '../lib/supabase';
 
 interface AuthContextType extends AuthState {
   login: (credentials: LoginCredentials) => Promise<UserSession>;
@@ -37,23 +36,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     initializeAuth();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (!mounted) return;
-      if (session) {
-         const currentUser = await authService.getCurrentUser();
-         if (mounted) {
-            setUser(currentUser);
-         }
-      } else {
-         if (mounted) {
-            setUser(null);
-         }
-      }
-    });
-
     return () => {
       mounted = false;
-      subscription.unsubscribe();
     };
   }, []);
 

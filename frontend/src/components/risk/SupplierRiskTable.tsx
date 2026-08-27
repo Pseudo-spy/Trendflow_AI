@@ -1,65 +1,33 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { CinematicCard } from '../ui/CinematicCard';
 import { Badge } from '../ui/Badge';
 import { ShieldCheck } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme';
-import { predictRisk, type RiskPredictionResponse } from '../../services/api/riskApi';
-import { LoadingState, ErrorState, EmptyState } from '../ui/States';
+import { type RiskPredictionResponse } from '../../services/api/riskApi';
+import { EmptyState } from '../ui/States';
 
-const DEFAULT_RISK_QUERIES = [
-  { supplier_id: 'SUP001', material_id: 'MAT001' },
-  { supplier_id: 'SUP002', material_id: 'MAT002' },
-  { supplier_id: 'SUP003', material_id: 'MAT003' },
-  { supplier_id: 'SUP004', material_id: 'MAT004' },
-  { supplier_id: 'SUP005', material_id: 'MAT005' },
-  { supplier_id: 'SUP006', material_id: 'MAT006' },
-];
+interface SupplierRiskTableProps {
+  data: RiskPredictionResponse[];
+}
 
-export const SupplierRiskTable: React.FC = () => {
+export const SupplierRiskTable: React.FC<SupplierRiskTableProps> = ({ data }) => {
   const { mode } = useTheme();
   const isLight = mode === 'light';
-  const [data, setData] = useState<RiskPredictionResponse[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  const loadRiskData = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      // Fetch predictions concurrently for the default queries
-      const promises = DEFAULT_RISK_QUERIES.map(q => predictRisk(q));
-      const results = await Promise.all(promises);
-      setData(results);
-    } catch (err: any) {
-      setError(err.message || 'Failed to fetch risk predictions');
-    } finally {
-      setLoading(false);
-    }
+  const formatPredictionDate = (value?: string | null) => {
+    if (!value) return '—';
+    const [year, month, day] = value.split('-');
+    if (!year || !month || !day) return value;
+    return `${day}-${month}-${year}`;
   };
-
-  useEffect(() => {
-    loadRiskData();
-  }, []);
-
-  if (loading) {
-    return <LoadingState message="Running Risk Prediction Models..." />;
-  }
-
-  if (error) {
-    return <ErrorState error={error} onRetry={loadRiskData} />;
-  }
-
-  if (data.length === 0) {
-    return <EmptyState title="No Risk Data" message="No supplier risk data available at this time." />;
-  }
 
   return (
     <CinematicCard
-      title="Partner Disruption Telemetry & Vulnerability Matrix"
-      subtitle="Real-time multi-factor risk scores aggregating geopolitical, climate, port congestion, and financial signals"
+      title="Analyzed Results"
+      subtitle="Current session risk analyses."
       icon={<ShieldCheck size={18} color="#16A34A" />}
       glowColor="emerald"
-      headerAction={<Badge variant="emerald">{data.length} Partner Nodes Monitored</Badge>}
+      headerAction={<Badge variant="emerald">{data.length} Nodes Analyzed</Badge>}
     >
       <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
@@ -74,61 +42,62 @@ export const SupplierRiskTable: React.FC = () => {
                 letterSpacing: '0.05em',
               }}
             >
-              <th style={{ padding: '8px 10px' }}>Vendor Facility</th>
-              <th style={{ padding: '8px 10px' }}>Region</th>
-              <th style={{ padding: '8px 10px' }}>Geo Risk</th>
-              <th style={{ padding: '8px 10px' }}>Port / Climate</th>
-              <th style={{ padding: '8px 10px' }}>Lead Variance</th>
-              <th style={{ padding: '8px 10px' }}>Risk Index</th>
-              <th style={{ padding: '8px 10px' }}>Mitigation State</th>
+              <th style={{ padding: '8px 10px' }}>Supplier ID</th>
+              <th style={{ padding: '8px 10px' }}>Prediction Date</th>
+              <th style={{ padding: '8px 10px' }}>Quality Risk</th>
+              <th style={{ padding: '8px 10px' }}>Delivery Risk</th>
+              <th style={{ padding: '8px 10px' }}>Risk Score</th>
+              <th style={{ padding: '8px 10px' }}>Risk Level</th>
             </tr>
           </thead>
           <tbody>
-            {data.map((row, idx) => {
-              let badgeColor: 'emerald' | 'amber' | 'rose' = 'emerald';
-              let actionText = 'Normal Flow';
-              
-              if (row.risk_level === 'HIGH') {
-                badgeColor = 'rose';
-                actionText = 'High Alert / Reroute';
-              } else if (row.risk_level === 'MEDIUM') {
-                badgeColor = 'amber';
-                actionText = 'Monitor / Buffer';
-              }
+            {data.length === 0 ? (
+              <tr>
+                <td colSpan={6} style={{ padding: '40px 0' }}>
+                  <EmptyState title="No Risk Data" message="No supplier risk data available. Select a supplier and material to run an analysis." />
+                </td>
+              </tr>
+            ) : (
+              data.map((row, idx) => {
+                let badgeColor: 'emerald' | 'amber' | 'rose' = 'emerald';
+                
+                if (row.risk_level === 'HIGH') {
+                  badgeColor = 'rose';
+                } else if (row.risk_level === 'MEDIUM') {
+                  badgeColor = 'amber';
+                }
 
-              return (
-                <tr
-                  key={idx}
-                  style={{
-                    borderBottom: isLight ? '1px solid rgba(15, 23, 42, 0.04)' : '1px solid rgba(255, 255, 255, 0.04)',
-                  }}
-                >
-                  <td style={{ padding: '10px 10px', fontWeight: 700, color: isLight ? '#0F172A' : '#F8FAFC' }}>
-                    {row.supplier_id} (N/A)
-                  </td>
-                  <td style={{ padding: '10px 10px', color: '#94A3B8' }}>
-                    N/A
-                  </td>
-                  <td style={{ padding: '10px 10px', color: isLight ? '#0F172A' : '#F8FAFC' }}>
-                    N/A
-                  </td>
-                  <td style={{ padding: '10px 10px', color: '#64748B', fontWeight: 400 }}>
-                    N/A ({Math.round(row.delay_probability * 100)}% Delay Prob)
-                  </td>
-                  <td style={{ padding: '10px 10px', color: '#94A3B8', fontFamily: "'JetBrains Mono', monospace" }}>
-                    ±{row.predicted_delay_days} days
-                  </td>
-                  <td style={{ padding: '10px 10px', fontWeight: 800, color: row.risk_score > 30 ? '#F43F5E' : '#16A34A', fontFamily: "'JetBrains Mono', monospace" }}>
-                    {Math.round(row.risk_score)} / 100
-                  </td>
-                  <td style={{ padding: '10px 10px' }}>
-                    <Badge variant={badgeColor}>
-                      {actionText}
-                    </Badge>
-                  </td>
-                </tr>
-              );
-            })}
+                return (
+                  <tr
+                    key={idx}
+                    style={{
+                      borderBottom: isLight ? '1px solid rgba(15, 23, 42, 0.04)' : '1px solid rgba(255, 255, 255, 0.04)',
+                    }}
+                  >
+                    <td style={{ padding: '10px 10px', fontWeight: 700, color: isLight ? '#0F172A' : '#F8FAFC' }}>
+                      {row.supplier_id}
+                    </td>
+                    <td style={{ padding: '10px 10px', color: isLight ? '#0F172A' : '#F8FAFC' }}>
+                      {formatPredictionDate(row.prediction_date)}
+                    </td>
+                    <td style={{ padding: '10px 10px', color: '#64748B', fontWeight: 400 }}>
+                      {row.quality_risk}
+                    </td>
+                    <td style={{ padding: '10px 10px', color: '#94A3B8', fontFamily: "'JetBrains Mono', monospace" }}>
+                      {row.delivery_risk}
+                    </td>
+                    <td style={{ padding: '10px 10px', fontWeight: 800, color: row.risk_score > 0.5 ? '#F43F5E' : '#16A34A', fontFamily: "'JetBrains Mono', monospace" }}>
+                      {row.risk_score}
+                    </td>
+                    <td style={{ padding: '10px 10px' }}>
+                      <Badge variant={badgeColor}>
+                        {row.risk_level}
+                      </Badge>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
           </tbody>
         </table>
       </div>

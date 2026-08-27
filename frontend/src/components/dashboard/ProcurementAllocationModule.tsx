@@ -3,85 +3,66 @@ import { CinematicCard } from '../ui/CinematicCard';
 import { Badge } from '../ui/Badge';
 import { Cpu } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme';
+import { type OptimizationResponse } from '../../services/api/procurementApi';
 
-const supplierAllocations = [
-  { supplier: 'Taipei Organic Fabrics', allocation: 48000, share: '38.4%', unitCost: '$18.50', leadTime: '7 days', moq: '10,000 u', status: 'Optimal', badge: 'emerald' as const },
-  { supplier: 'Shenzhen Mega Spinning', allocation: 36000, share: '28.8%', unitCost: '$16.80', leadTime: '5 days', moq: '15,000 u', status: 'Optimal', badge: 'emerald' as const },
-  { supplier: 'Hanoi Garments Ltd', allocation: 24000, share: '19.2%', unitCost: '$14.20', leadTime: '12 days', moq: '8,000 u', status: 'Cap Reached', badge: 'amber' as const },
-  { supplier: 'Frankfurt Eco Textiles', allocation: 10000, share: '8.0%', unitCost: '$22.00', leadTime: '3 days', moq: '5,000 u', status: 'Fast-Track', badge: 'cyan' as const },
-  { supplier: 'Americas Synthetic Mill', allocation: 7000, share: '5.6%', unitCost: '$21.50', leadTime: '4 days', moq: '5,000 u', status: 'Fast-Track', badge: 'cyan' as const },
-];
+interface ProcurementAllocationModuleProps {
+  latestProcurementResult?: OptimizationResponse | null;
+}
 
-export const ProcurementAllocationModule: React.FC = () => {
+export const ProcurementAllocationModule: React.FC<ProcurementAllocationModuleProps> = ({ latestProcurementResult }) => {
   const { mode } = useTheme();
   const isLight = mode === 'light';
 
   return (
     <CinematicCard
-      title="Procurement Order Allocation (Google OR-Tools MILP)"
-      subtitle="Mathematical optimization allocating purchase volumes across supplier MOQs, price breaks, and tariffs"
+      title="Procurement Volume Allocation"
+      subtitle="Latest procurement optimization run results."
       icon={<Cpu size={18} color="#6366F1" />}
       glowColor="indigo"
-      headerAction={<Badge variant="cyan" pulse>MILP Optimal (842ms)</Badge>}
+      headerAction={<Badge variant="indigo">Latest Procurement</Badge>}
     >
-      <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
-          <thead>
-            <tr
-              style={{
-                borderBottom: isLight ? '1px solid rgba(15, 23, 42, 0.1)' : '1px solid rgba(255, 255, 255, 0.08)',
-                textAlign: 'left',
-                color: '#64748B',
-                fontSize: '11px',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-              }}
-            >
-              <th style={{ padding: '8px 10px' }}>Qualified Supplier</th>
-              <th style={{ padding: '8px 10px' }}>Allocated Volume</th>
-              <th style={{ padding: '8px 10px' }}>Quota Share</th>
-              <th style={{ padding: '8px 10px' }}>Unit Cost</th>
-              <th style={{ padding: '8px 10px' }}>Lead Time</th>
-              <th style={{ padding: '8px 10px' }}>Tier MOQ</th>
-              <th style={{ padding: '8px 10px' }}>Solver Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {supplierAllocations.map((row, idx) => (
-              <tr
-                key={idx}
-                style={{
-                  borderBottom: isLight ? '1px solid rgba(15, 23, 42, 0.04)' : '1px solid rgba(255, 255, 255, 0.04)',
-                }}
-              >
-                <td style={{ padding: '10px 10px', fontWeight: 700, color: isLight ? '#0F172A' : '#F8FAFC' }}>
-                  {row.supplier}
-                </td>
-                <td style={{ padding: '10px 10px', fontWeight: 800, color: isLight ? '#0F172A' : '#F8FAFC', fontFamily: "'JetBrains Mono', monospace" }}>
-                  {row.allocation.toLocaleString()} units
-                </td>
-                <td style={{ padding: '10px 10px', color: '#06B6D4', fontWeight: 700, fontFamily: "'JetBrains Mono', monospace" }}>
-                  {row.share}
-                </td>
-                <td style={{ padding: '10px 10px', color: '#16A34A', fontWeight: 700, fontFamily: "'JetBrains Mono', monospace" }}>
-                  {row.unitCost}
-                </td>
-                <td style={{ padding: '10px 10px', color: '#94A3B8' }}>
-                  {row.leadTime}
-                </td>
-                <td style={{ padding: '10px 10px', color: '#64748B', fontFamily: "'JetBrains Mono', monospace" }}>
-                  {row.moq}
-                </td>
-                <td style={{ padding: '10px 10px' }}>
-                  <Badge variant={row.badge}>
-                    {row.status}
-                  </Badge>
-                </td>
+      {!latestProcurementResult ? (
+        <div style={{ padding: '24px', textAlign: 'center', color: '#64748B', fontSize: '13px' }}>
+          No procurement allocation run this session.
+        </div>
+      ) : (
+        <div style={{ marginTop: '12px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', background: isLight ? 'rgba(99, 102, 241, 0.05)' : 'rgba(99, 102, 241, 0.1)', padding: '12px', borderRadius: '8px' }}>
+             <div>
+               <div style={{ fontSize: '10px', color: '#64748B' }}>Total Allocated</div>
+               <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#6366F1' }}>{latestProcurementResult.total_allocated.toLocaleString()}</div>
+             </div>
+             <div>
+               <div style={{ fontSize: '10px', color: '#64748B' }}>Total Cost</div>
+               <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#F59E0B' }}>${latestProcurementResult.total_cost.toLocaleString()}</div>
+             </div>
+          </div>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ borderBottom: isLight ? '1px solid rgba(15, 23, 42, 0.1)' : '1px solid rgba(255, 255, 255, 0.1)', textAlign: 'left', color: isLight ? '#64748B' : '#94A3B8', fontSize: '11px', textTransform: 'uppercase' }}>
+                <th style={{ padding: '8px 4px' }}>Supplier ID</th>
+                <th style={{ padding: '8px 4px' }}>Allocated Qty</th>
+                <th style={{ padding: '8px 4px' }}>Unit Price</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {latestProcurementResult.allocation.map((alloc, idx) => (
+                <tr key={idx} style={{ borderBottom: isLight ? '1px solid rgba(15, 23, 42, 0.05)' : '1px solid rgba(255, 255, 255, 0.05)' }}>
+                  <td style={{ padding: '12px 4px', fontSize: '12px', fontWeight: 600, color: isLight ? '#0F172A' : '#F8FAFC' }}>
+                    {alloc.supplier_id}
+                  </td>
+                  <td style={{ padding: '12px 4px', fontSize: '12px', color: isLight ? '#334155' : '#CBD5E1', fontFamily: "'JetBrains Mono', monospace" }}>
+                    {alloc.quantity.toLocaleString()}
+                  </td>
+                  <td style={{ padding: '12px 4px', fontSize: '12px', color: isLight ? '#334155' : '#CBD5E1' }}>
+                    ${alloc.unit_price.toFixed(2)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </CinematicCard>
   );
 };

@@ -1,8 +1,20 @@
 import React from 'react';
 import { MetricCard } from '../ui/MetricCard';
-import { TrendingUp, Sparkles, ShieldCheck, Sun, Sliders } from 'lucide-react';
+import { BarChart2, TrendingUp, Calendar, FileStack } from 'lucide-react';
 
-export const DemandKpis: React.FC = () => {
+interface DemandKpisProps {
+  totalHistoryRecords: number;
+  totalHistoryQuantity: number;
+  totalForecastRecords: number;
+  totalForecastQuantity: number;
+}
+
+export const DemandKpis: React.FC<DemandKpisProps> = ({
+  totalHistoryRecords,
+  totalHistoryQuantity,
+  totalForecastRecords,
+  totalForecastQuantity,
+}) => {
   return (
     <div
       style={{
@@ -13,56 +25,39 @@ export const DemandKpis: React.FC = () => {
       }}
     >
       <MetricCard
-        label="Projected Q3 Demand"
-        value={184200}
-        suffix=" units"
+        label="Historical Records"
+        value={totalHistoryRecords}
+        suffix=" records"
         decimals={0}
-        change={8.4}
-        changeLabel="YoY growth"
-        icon={<TrendingUp size={16} />}
+        icon={<Calendar size={16} />}
         glowColor="cyan"
       />
 
       <MetricCard
-        label="Model Forecast Accuracy"
-        value={96.8}
-        suffix="%"
-        decimals={1}
-        change={3.2}
-        changeLabel="MAPE score"
-        icon={<Sparkles size={16} />}
+        label="Total Historical Demand"
+        value={totalHistoryQuantity}
+        suffix=" units"
+        decimals={0}
+        icon={<BarChart2 size={16} />}
         glowColor="indigo"
       />
 
       <MetricCard
-        label="Model Confidence Index"
-        value={94.5}
-        suffix="%"
-        decimals={1}
-        statusBadge={{ label: 'High Confidence', variant: 'emerald' }}
-        icon={<ShieldCheck size={16} />}
+        label="Forecast Records"
+        value={totalForecastRecords}
+        suffix=" records"
+        decimals={0}
+        icon={<FileStack size={16} />}
         glowColor="emerald"
       />
 
       <MetricCard
-        label="Seasonality Surge Lift"
-        value={12.4}
-        prefix="+"
-        suffix="%"
-        decimals={1}
-        changeLabel="Summer peak index"
-        icon={<Sun size={16} />}
-        glowColor="amber"
-      />
-
-      <MetricCard
-        label="Monitored SKU Lines"
-        value={48}
-        suffix=" clusters"
+        label="Total Forecast Quantity"
+        value={totalForecastQuantity}
+        suffix=" units"
         decimals={0}
-        statusBadge={{ label: 'Synchronized', variant: 'cyan' }}
-        icon={<Sliders size={16} />}
-        glowColor="cyan"
+        icon={<TrendingUp size={16} />}
+        glowColor="amber"
       />
     </div>
   );

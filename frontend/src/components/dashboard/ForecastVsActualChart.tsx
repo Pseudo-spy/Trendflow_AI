@@ -1,151 +1,135 @@
-import React, { useState } from 'react';
+import React, { useMemo } from 'react';
 import { CinematicCard } from '../ui/CinematicCard';
 import { Badge } from '../ui/Badge';
 import {
-  ResponsiveContainer,
   AreaChart,
   Area,
   XAxis,
   YAxis,
-  Tooltip,
   CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
 } from 'recharts';
 import { TrendingUp } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme';
+import { type DemandHistoryItem, type DemandForecastItem } from '../../services/api/demandApi';
 
-const forecastData90D = [
-  { month: 'Apr', actual: 16800, forecast: 16600, upperCI: 17200, lowerCI: 16000 },
-  { month: 'May', actual: 21200, forecast: 20900, upperCI: 21800, lowerCI: 20100 },
-  { month: 'Jun', actual: 28400, forecast: 28000, upperCI: 29200, lowerCI: 27100 },
-  { month: 'Jul', actual: 32600, forecast: 32100, upperCI: 33800, lowerCI: 31000 },
-  { month: 'Aug', actual: null, forecast: 36800, upperCI: 38900, lowerCI: 34800 },
-  { month: 'Sep', actual: null, forecast: 41200, upperCI: 43800, lowerCI: 38700 },
-  { month: 'Oct', actual: null, forecast: 38500, upperCI: 41200, lowerCI: 35900 },
-  { month: 'Nov', actual: null, forecast: 46200, upperCI: 49500, lowerCI: 43100 },
-  { month: 'Dec', actual: null, forecast: 52400, upperCI: 56200, lowerCI: 48900 },
-];
+interface ForecastVsActualChartProps {
+  demandHistory?: DemandHistoryItem[];
+  demandForecast?: DemandForecastItem[];
+}
 
-export const ForecastVsActualChart: React.FC = () => {
-  const [horizon, setHorizon] = useState<'60D' | '90D' | '180D'>('90D');
+export const ForecastVsActualChart: React.FC<ForecastVsActualChartProps> = ({ demandHistory, demandForecast }) => {
   const { mode } = useTheme();
   const isLight = mode === 'light';
 
+  const chartData = useMemo(() => {
+    // Merge history and forecast based on date
+    const dateMap = new Map<string, any>();
+    
+    if (demandHistory) {
+      demandHistory.forEach(record => {
+        dateMap.set(record.demand_date, {
+          name: record.demand_date,
+          actual: record.quantity_sold
+        });
+      });
+    }
+
+    if (demandForecast) {
+      demandForecast.forEach(record => {
+        const existing = dateMap.get(record.forecast_date) || { name: record.forecast_date };
+        existing.forecast = record.forecast_quantity;
+        dateMap.set(record.forecast_date, existing);
+      });
+    }
+
+    const merged = Array.from(dateMap.values());
+    merged.sort((a, b) => new Date(a.name).getTime() - new Date(b.name).getTime());
+    return merged;
+  }, [demandHistory, demandForecast]);
+
   return (
     <CinematicCard
-      title="Demand Forecast vs Historical Actuals"
-      subtitle="Probabilistic multi-horizon forecasting with LightGBM + Prophet 95% confidence bounds"
-      icon={<TrendingUp size={18} color="#06B6D4" />}
-      glowColor="cyan"
-      headerAction={
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          {(['60D', '90D', '180D'] as const).map((h) => (
-            <button
-              key={h}
-              onClick={() => setHorizon(h)}
-              style={{
-                padding: '4px 10px',
-                borderRadius: '6px',
-                background: horizon === h ? (isLight ? 'rgba(2, 132, 199, 0.15)' : 'rgba(6, 182, 212, 0.25)') : 'transparent',
-                border: horizon === h ? '1px solid #06B6D4' : '1px solid transparent',
-                color: horizon === h ? (isLight ? '#0284C7' : '#38BDF8') : '#94A3B8',
-                fontSize: '11px',
-                fontWeight: 700,
-                cursor: 'pointer',
-              }}
-            >
-              {h}
-            </button>
-          ))}
-        </div>
-      }
+      title="Demand History & Forecast"
+      subtitle="Historical demand and stored forecast values from the backend."
+      icon={<TrendingUp size={18} color="#8B5CF6" />}
+      glowColor="indigo"
+      headerAction={<Badge variant="indigo">Stored Forecast</Badge>}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '14px', flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#94A3B8' }}>
-          <span style={{ width: '10px', height: '10px', borderRadius: '2px', backgroundColor: '#16A34A' }} />
-          <span>Historical Actuals</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#94A3B8' }}>
-          <span style={{ width: '10px', height: '10px', borderRadius: '2px', backgroundColor: '#06B6D4' }} />
-          <span>AI Projected Forecast</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#94A3B8' }}>
-          <span style={{ width: '10px', height: '10px', borderRadius: '2px', backgroundColor: 'rgba(99, 102, 241, 0.3)' }} />
-          <span>95% Confidence Interval Band</span>
-        </div>
-        <div style={{ marginLeft: 'auto' }}>
-          <Badge variant="cyan">
-            MAPE: 3.2% (96.8% Accuracy)
-          </Badge>
-        </div>
-      </div>
-
-      <div style={{ width: '100%', height: '300px' }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={forecastData90D} margin={{ top: 10, right: 20, left: 15, bottom: 0 }}>
-            <defs>
-              <linearGradient id="forecastCyan" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#06B6D4" stopOpacity={0.4} />
-                <stop offset="95%" stopColor="#06B6D4" stopOpacity={0.0} />
-              </linearGradient>
-              <linearGradient id="ciBand" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#6366F1" stopOpacity={0.2} />
-                <stop offset="95%" stopColor="#6366F1" stopOpacity={0.05} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke={isLight ? 'rgba(15, 23, 42, 0.08)' : 'rgba(255, 255, 255, 0.05)'} />
-            <XAxis dataKey="month" stroke="#64748B" />
-            <YAxis
-              stroke="#64748B"
-              width={52}
-              tickFormatter={(val: number) => (val >= 1000 ? `${val / 1000}k` : `${val}`)}
-              tick={{ fontSize: 11, fill: '#64748B' }}
-            />
-            <Tooltip
-              formatter={(value: any, name: any) => [
-                typeof value === 'number' ? `${value.toLocaleString()} units` : value,
-                name,
-              ]}
-              contentStyle={{
-                backgroundColor: isLight ? '#FFFFFF' : '#0F172A',
-                borderColor: 'rgba(6, 182, 212, 0.3)',
-                borderRadius: '8px',
-                color: isLight ? '#0F172A' : '#F8FAFC',
-                fontSize: '12px',
-              }}
-            />
-            {/* Confidence Interval Area */}
-            <Area
-              animationDuration={400}
-              type="monotone"
-              dataKey="upperCI"
-              stroke="transparent"
-              fillOpacity={1}
-              fill="url(#ciBand)"
-              name="Upper 95% Bound"
-            />
-            {/* AI Forecast */}
-            <Area
-              animationDuration={400}
-              type="monotone"
-              dataKey="forecast"
-              stroke="#06B6D4"
-              strokeWidth={3}
-              fillOpacity={1}
-              fill="url(#forecastCyan)"
-              name="AI Projected Demand"
-            />
-            {/* Actuals */}
-            <Area
-              animationDuration={400}
-              type="monotone"
-              dataKey="actual"
-              stroke="#16A34A"
-              strokeWidth={3}
-              fillOpacity={0}
-              name="Actual Sales"
-            />
-          </AreaChart>
-        </ResponsiveContainer>
+      <div style={{ width: '100%', height: '240px', marginTop: '16px' }}>
+        {chartData.length === 0 ? (
+          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B' }}>
+            No demand data available from backend
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={chartData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
+              <defs>
+                <linearGradient id="colorActual" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#06B6D4" stopOpacity={0.4} />
+                  <stop offset="95%" stopColor="#06B6D4" stopOpacity={0} />
+                </linearGradient>
+                <linearGradient id="colorForecast" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.4} />
+                  <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid
+                strokeDasharray="3 3"
+                vertical={false}
+                stroke={isLight ? 'rgba(15,23,42,0.05)' : 'rgba(255,255,255,0.05)'}
+              />
+              <XAxis
+                dataKey="name"
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: isLight ? '#64748B' : '#94A3B8', fontSize: 10 }}
+                dy={10}
+              />
+              <YAxis
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: isLight ? '#64748B' : '#94A3B8', fontSize: 10 }}
+                dx={-10}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: isLight ? 'rgba(255,255,255,0.9)' : 'rgba(15,23,42,0.9)',
+                  borderColor: isLight ? 'rgba(15,23,42,0.1)' : 'rgba(255,255,255,0.1)',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                  color: isLight ? '#0F172A' : '#F8FAFC',
+                }}
+                itemStyle={{ fontSize: '12px', fontWeight: 600 }}
+                labelStyle={{ color: '#64748B', marginBottom: '4px', fontSize: '11px' }}
+              />
+              <Legend iconType="circle" wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
+              <Area
+                type="monotone"
+                dataKey="actual"
+                name="Historical Actuals"
+                stroke="#06B6D4"
+                strokeWidth={2}
+                fillOpacity={1}
+                fill="url(#colorActual)"
+                activeDot={{ r: 6, fill: '#06B6D4', stroke: '#fff', strokeWidth: 2 }}
+              />
+              <Area
+                type="monotone"
+                dataKey="forecast"
+                name="Projected Forecast"
+                stroke="#8B5CF6"
+                strokeWidth={2}
+                strokeDasharray="5 5"
+                fillOpacity={1}
+                fill="url(#colorForecast)"
+                activeDot={{ r: 6, fill: '#8B5CF6', stroke: '#fff', strokeWidth: 2 }}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        )}
       </div>
     </CinematicCard>
   );

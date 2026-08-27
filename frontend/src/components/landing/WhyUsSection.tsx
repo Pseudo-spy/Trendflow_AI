@@ -21,7 +21,7 @@ export const WhyUsSection: React.FC = () => {
     },
     {
       title: 'Optimized Procurement',
-      desc: 'Stop guessing on order allocation. Our MILP solvers automatically balance supplier MOQs, capacities, and tariffs for the lowest landed cost.',
+      desc: 'Stop guessing on order allocation. Our solvers automatically balance supplier MOQs, capacities, and tariffs for the lowest landed cost.',
       image: '/images/login_warehouse_ai.jpg',
     },
     {

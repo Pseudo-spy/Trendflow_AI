@@ -2,16 +2,17 @@ import React, { useState } from 'react';
 import { Modal } from '../ui/Modal';
 import { GlowButton } from '../ui/GlowButton';
 import { Badge } from '../ui/Badge';
-import { Cpu, Play, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { Cpu, Play, CheckCircle2, Layers } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme';
-import { runSopEngine } from '../../services/api/sopApi';
+import { runSopEngine, type MaterialRequirementContract } from '../../services/api/sopApi';
 
 interface QuickPlanningModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onPlanningComplete?: (result: MaterialRequirementContract) => void;
 }
 
-export const QuickPlanningModal: React.FC<QuickPlanningModalProps> = ({ isOpen, onClose }) => {
+export const QuickPlanningModal: React.FC<QuickPlanningModalProps> = ({ isOpen, onClose, onPlanningComplete }) => {
   const [sku, setSku] = useState('');
   const [targetDate, setTargetDate] = useState('');
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -19,9 +20,7 @@ export const QuickPlanningModal: React.FC<QuickPlanningModalProps> = ({ isOpen, 
   
   const [isRunning, setIsRunning] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
-  const [serviceLevel, setServiceLevel] = useState(98.5);
-  const [budgetLimit, setBudgetLimit] = useState(5000000);
-  const [solverMode] = useState<'milp' | 'fast_heuristic'>('milp');
+  const [result, setResult] = useState<MaterialRequirementContract | null>(null);
   const { mode } = useTheme();
   const isLight = mode === 'light';
 
@@ -40,12 +39,17 @@ export const QuickPlanningModal: React.FC<QuickPlanningModalProps> = ({ isOpen, 
       setApiError(null);
       setIsRunning(true);
       setIsCompleted(false);
+      setResult(null);
 
       // Execute actual backend S&OP engine
       const response = await runSopEngine({ sku: sku.trim(), target_date: targetDate });
       
-      // Dispatch an event so page components can refresh their data
-      window.dispatchEvent(new CustomEvent('sop-run-completed', { detail: response }));
+      setResult(response);
+      sessionStorage.setItem('trendflow.latestSopResult', JSON.stringify(response));
+      
+      if (onPlanningComplete) {
+        onPlanningComplete(response);
+      }
 
       setIsCompleted(true);
     } catch (error) {
@@ -60,6 +64,7 @@ export const QuickPlanningModal: React.FC<QuickPlanningModalProps> = ({ isOpen, 
   const handleReset = () => {
     setIsRunning(false);
     setIsCompleted(false);
+    setResult(null);
     onClose();
   };
 
@@ -67,8 +72,8 @@ export const QuickPlanningModal: React.FC<QuickPlanningModalProps> = ({ isOpen, 
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Autonomous S&OP & Procurement Planning Engine"
-      subtitle="Execute Google OR-Tools MILP allocation across global supplier nodes"
+      title="S&OP Material Planning"
+      subtitle="Generate the current backend material requirement for a SKU and target date."
       maxWidth="lg"
     >
       {!isCompleted ? (
@@ -89,15 +94,15 @@ export const QuickPlanningModal: React.FC<QuickPlanningModalProps> = ({ isOpen, 
               <Cpu size={18} color="#06B6D4" />
               <div>
                 <div style={{ fontSize: '13px', fontWeight: 700, color: isLight ? '#0F172A' : '#F8FAFC' }}>
-                  Google OR-Tools Solver v9.8
+                  Material Planning Engine
                 </div>
                 <div style={{ fontSize: '11px', color: '#94A3B8' }}>
-                  Target: Q3 FY2026 • 5 Facilities • 48 SKUs
+                  Execute backend material requirement planning
                 </div>
               </div>
             </div>
             <Badge variant="cyan" pulse>
-              READY
+              Backend Prototype
             </Badge>
           </div>
 
@@ -174,113 +179,6 @@ export const QuickPlanningModal: React.FC<QuickPlanningModalProps> = ({ isOpen, 
                 }}
               />
             </div>
-
-            {/* Service Level Target */}
-            <div
-              style={{
-                padding: '14px',
-                borderRadius: '10px',
-                background: isLight ? '#F8FAFC' : 'rgba(255, 255, 255, 0.03)',
-                border: isLight ? '1px solid rgba(15, 23, 42, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)',
-                opacity: 0.6,
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <span style={{ fontSize: '12px', fontWeight: 600, color: isLight ? '#0F172A' : '#F8FAFC' }}>
-                  Target Service Level
-                </span>
-                <span style={{ fontSize: '12px', fontWeight: 700, color: '#06B6D4', fontFamily: "'JetBrains Mono', monospace" }}>
-                  {serviceLevel}%
-                </span>
-              </div>
-              <input
-                type="range"
-                min="90"
-                max="99.9"
-                step="0.1"
-                value={serviceLevel}
-                onChange={(e) => setServiceLevel(parseFloat(e.target.value))}
-                disabled={true}
-                style={{ width: '100%', accentColor: '#06B6D4', cursor: 'not-allowed' }}
-              />
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#64748B', marginTop: '4px' }}>
-                <span>Backend Pending</span>
-              </div>
-            </div>
-
-            {/* Budget Constraint */}
-            <div
-              style={{
-                padding: '14px',
-                borderRadius: '10px',
-                background: isLight ? '#F8FAFC' : 'rgba(255, 255, 255, 0.03)',
-                border: isLight ? '1px solid rgba(15, 23, 42, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)',
-                opacity: 0.6,
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <span style={{ fontSize: '12px', fontWeight: 600, color: isLight ? '#0F172A' : '#F8FAFC' }}>
-                  Budget Cap Constraint
-                </span>
-                <span style={{ fontSize: '12px', fontWeight: 700, color: '#16A34A', fontFamily: "'JetBrains Mono', monospace" }}>
-                  ${(budgetLimit / 1000000).toFixed(1)}M
-                </span>
-              </div>
-              <input
-                type="range"
-                min="2000000"
-                max="10000000"
-                step="250000"
-                value={budgetLimit}
-                onChange={(e) => setBudgetLimit(parseInt(e.target.value))}
-                disabled={true}
-                style={{ width: '100%', accentColor: '#16A34A', cursor: 'not-allowed' }}
-              />
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#64748B', marginTop: '4px' }}>
-                <span>Backend Pending</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Solver Mode Selection */}
-          <div style={{ display: 'flex', gap: '12px', opacity: 0.6 }}>
-            <button
-              disabled={true}
-              style={{
-                flex: 1,
-                padding: '12px',
-                borderRadius: '10px',
-                background: solverMode === 'milp' ? (isLight ? 'rgba(2, 132, 199, 0.15)' : 'rgba(6, 182, 212, 0.2)') : 'transparent',
-                border: solverMode === 'milp' ? '1px solid #06B6D4' : (isLight ? '1px solid rgba(15, 23, 42, 0.1)' : '1px solid rgba(255, 255, 255, 0.1)'),
-                color: isLight ? '#0F172A' : '#F8FAFC',
-                cursor: 'not-allowed',
-                textAlign: 'left',
-              }}
-            >
-              <div style={{ fontSize: '13px', fontWeight: 700 }}>Exact MILP Optimization</div>
-              <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '2px' }}>
-                Backend Pending
-              </div>
-            </button>
-
-            <button
-              disabled={true}
-              style={{
-                flex: 1,
-                padding: '12px',
-                borderRadius: '10px',
-                background: solverMode === 'fast_heuristic' ? (isLight ? 'rgba(99, 102, 241, 0.15)' : 'rgba(99, 102, 241, 0.2)') : 'transparent',
-                border: solverMode === 'fast_heuristic' ? '1px solid #6366F1' : (isLight ? '1px solid rgba(15, 23, 42, 0.1)' : '1px solid rgba(255, 255, 255, 0.1)'),
-                color: isLight ? '#0F172A' : '#F8FAFC',
-                cursor: 'not-allowed',
-                textAlign: 'left',
-              }}
-            >
-              <div style={{ fontSize: '13px', fontWeight: 700 }}>Fast Heuristic Preview</div>
-              <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '2px' }}>
-                Backend Pending
-              </div>
-            </button>
           </div>
 
           {/* Action Buttons */}
@@ -305,7 +203,7 @@ export const QuickPlanningModal: React.FC<QuickPlanningModalProps> = ({ isOpen, 
               onClick={handleRunPlanning}
               disabled={isRunning}
             >
-              {isRunning ? 'Solving S&OP Constraints...' : 'Execute Planning Cycle'}
+              {isRunning ? 'Running S&OP...' : 'Generate Material Requirement'}
             </GlowButton>
           </div>
         </div>
@@ -331,20 +229,52 @@ export const QuickPlanningModal: React.FC<QuickPlanningModalProps> = ({ isOpen, 
 
           <div>
             <h3 style={{ fontSize: '20px', fontWeight: 800, color: isLight ? '#0F172A' : '#F8FAFC' }}>
-              Planning Cycle Completed Successfully
+              Material requirement generated.
             </h3>
             <p style={{ fontSize: '13px', color: '#94A3B8', marginTop: '4px' }}>
-              Optimal order allocations and safety stock levels computed for Q3 FY2026.
-              Close this window to review the generated BOM Material Requirements.
+              Close this window to review the generated Material Requirements in the S&OP dashboard.
             </p>
           </div>
+          
+          {result && (
+            <div style={{ 
+              marginTop: '10px', 
+              padding: '16px', 
+              borderRadius: '8px', 
+              background: isLight ? '#F8FAFC' : 'rgba(255, 255, 255, 0.03)',
+              border: isLight ? '1px solid rgba(15, 23, 42, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              textAlign: 'left'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ padding: '8px', background: 'rgba(6, 182, 212, 0.15)', borderRadius: '6px' }}>
+                  <Layers size={20} color="#06B6D4" />
+                </div>
+                <div>
+                  <div style={{ fontSize: '14px', fontWeight: 700, color: isLight ? '#0F172A' : '#F8FAFC' }}>
+                    {result.material_id}
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#64748B' }}>
+                    Plant: {result.plant_id} | Date: {result.required_date}
+                  </div>
+                </div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: '16px', fontWeight: 700, color: isLight ? '#0F172A' : '#F8FAFC', fontFamily: "'JetBrains Mono', monospace" }}>
+                  {result.required_quantity.toLocaleString()}
+                </div>
+                <Badge variant={result.priority === 'HIGH' ? 'rose' : 'cyan'}>
+                  {result.priority}
+                </Badge>
+              </div>
+            </div>
+          )}
 
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginTop: '10px' }}>
             <GlowButton variant="secondary" onClick={handleReset}>
               Close & View Results
-            </GlowButton>
-            <GlowButton variant="primary" icon={<ShieldCheck size={16} />} disabled={true}>
-              Commit Plan (Backend Pending)
             </GlowButton>
           </div>
         </div>

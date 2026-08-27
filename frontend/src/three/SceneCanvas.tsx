@@ -52,7 +52,7 @@ export const SceneCanvas: React.FC<SceneCanvasProps> = ({
         <LightingSetup />
 
         {/* Smooth Camera Parallax Rig */}
-        {enableParallax && <CameraRig basePosition={cameraPosition} />}
+        <CameraRig basePosition={cameraPosition} enabled={enableParallax} />
 
         <Suspense fallback={null}>
           {children}

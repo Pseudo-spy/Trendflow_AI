@@ -74,7 +74,7 @@ export const FinalCtaSection: React.FC = () => {
                 marginBottom: '28px',
               }}
             >
-              Unlock real-time demand sensing, mathematical MILP order allocation,
+              Unlock real-time demand sensing, intelligent order allocation,
               and proactive risk management in a single connected interface.
             </p>
 

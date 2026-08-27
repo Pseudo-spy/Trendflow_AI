@@ -16,23 +16,18 @@ const ProcurementPage = React.lazy(() => import('./pages/ProcurementPage').then(
 const SuppliersPage = React.lazy(() => import('./pages/SuppliersPage').then(m => ({ default: m.SuppliersPage })));
 const RiskAnalysisPage = React.lazy(() => import('./pages/RiskAnalysisPage').then(m => ({ default: m.RiskAnalysisPage })));
 const ScenariosPage = React.lazy(() => import('./pages/ScenariosPage').then(m => ({ default: m.ScenariosPage })));
+const ProductsPage = React.lazy(() => import('./pages/ProductsPage').then(m => ({ default: m.ProductsPage })));
+const MaterialsPage = React.lazy(() => import('./pages/MaterialsPage').then(m => ({ default: m.MaterialsPage })));
 
-// Root Route Handler: First page that appears is Login, or redirect to Dashboard if authenticated
-const RootRoute: React.FC = () => {
-  const { isAuthenticated, isLoading } = useAuth();
-  if (isLoading) return null;
-  const isDevBypass = import.meta.env.DEV && import.meta.env.VITE_DISABLE_AUTH === 'true';
-  return (isAuthenticated || isDevBypass) ? <Navigate to="/dashboard" replace /> : <LoginPage />;
-};
+// Removing RootRoute since the root path should always show LandingPage
+// as the Platform Overview, regardless of auth state.
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
   
   if (isLoading) return <LoadingState />;
 
-  const isDevBypass = import.meta.env.DEV && import.meta.env.VITE_DISABLE_AUTH === 'true';
-
-  if (!isAuthenticated && !isDevBypass) {
+  if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
@@ -46,19 +41,21 @@ export const App: React.FC = () => {
         <BrowserRouter>
           <Suspense fallback={<LoadingState />}>
             <Routes>
-              {/* Root Route: Shows Login page on initial website entry */}
-              <Route path="/" element={<RootRoute />} />
+              {/* Root Route: Shows Platform Overview on initial website entry */}
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/home" element={<LandingPage />} />
               <Route path="/login" element={<LoginPage />} />
 
               {/* Application Layout with Navigation Shell */}
               <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
-                <Route path="home" element={<LandingPage />} />
                 <Route path="dashboard" element={<DashboardPage />} />
                 <Route path="demand-planning" element={<DemandPlanningPage />} />
                 <Route path="sop" element={<SopPlanningPage />} />
                 <Route path="inventory" element={<InventoryOptimizationPage />} />
                 <Route path="procurement" element={<ProcurementPage />} />
                 <Route path="suppliers" element={<SuppliersPage />} />
+                <Route path="products" element={<ProductsPage />} />
+                <Route path="materials" element={<MaterialsPage />} />
                 <Route path="risk" element={<RiskAnalysisPage />} />
                 <Route path="scenarios" element={<ScenariosPage />} />
               </Route>

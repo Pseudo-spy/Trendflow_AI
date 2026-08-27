@@ -70,14 +70,13 @@ export const ControlTowerHero3D: React.FC<ControlTowerHero3DProps> = ({
         </HoverableObject>
       </FloatingObject>
 
-      {/* Sequential Pipeline Connection Arcs — single packet, slow speed */}
       {/* 1→2 */}
       <ConnectionLine
         start={controlTowerNodes[0].position}
         end={controlTowerNodes[1].position}
         packetCount={1}
         speed={activeNodeId === 'node-demand' || activeNodeId === 'node-forecast' ? 0.6 : 0.35}
-        color={isLight ? '#15803D' : '#16A34A'}
+        color="#06B6D4" // Demand Cyan
       />
       {/* 2→3 */}
       <ConnectionLine
@@ -85,7 +84,7 @@ export const ControlTowerHero3D: React.FC<ControlTowerHero3DProps> = ({
         end={controlTowerNodes[2].position}
         packetCount={1}
         speed={activeNodeId === 'node-forecast' || activeNodeId === 'node-sop' ? 0.6 : 0.35}
-        color={isLight ? '#047857' : '#15803D'}
+        color="#3B82F6" // Forecast Blue
       />
       {/* 3→4 */}
       <ConnectionLine
@@ -93,7 +92,7 @@ export const ControlTowerHero3D: React.FC<ControlTowerHero3DProps> = ({
         end={controlTowerNodes[3].position}
         packetCount={1}
         speed={activeNodeId === 'node-sop' || activeNodeId === 'node-inventory' ? 0.6 : 0.35}
-        color="#16A34A"
+        color="#22C55E" // S&OP Green
       />
       {/* 4→5 */}
       <ConnectionLine
@@ -101,7 +100,7 @@ export const ControlTowerHero3D: React.FC<ControlTowerHero3DProps> = ({
         end={controlTowerNodes[4].position}
         packetCount={1}
         speed={activeNodeId === 'node-inventory' || activeNodeId === 'node-production' ? 0.6 : 0.35}
-        color={isLight ? '#15803D' : '#16A34A'}
+        color="#14B8A6" // Inventory Teal
       />
       {/* 5→6 */}
       <ConnectionLine
@@ -109,7 +108,7 @@ export const ControlTowerHero3D: React.FC<ControlTowerHero3DProps> = ({
         end={controlTowerNodes[5].position}
         packetCount={1}
         speed={activeNodeId === 'node-production' || activeNodeId === 'node-materials' ? 0.6 : 0.35}
-        color={isLight ? '#047857' : '#15803D'}
+        color="#A855F7" // Production Purple
       />
       {/* 6→7 */}
       <ConnectionLine
@@ -117,7 +116,7 @@ export const ControlTowerHero3D: React.FC<ControlTowerHero3DProps> = ({
         end={controlTowerNodes[6].position}
         packetCount={1}
         speed={activeNodeId === 'node-materials' || activeNodeId === 'node-suppliers' ? 0.6 : 0.35}
-        color="#F59E0B"
+        color="#8B5CF6" // Materials Violet
       />
       {/* 7→8 */}
       <ConnectionLine
@@ -125,7 +124,7 @@ export const ControlTowerHero3D: React.FC<ControlTowerHero3DProps> = ({
         end={controlTowerNodes[7].position}
         packetCount={1}
         speed={activeNodeId === 'node-suppliers' || activeNodeId === 'node-procurement' ? 0.6 : 0.35}
-        color={isLight ? '#15803D' : '#16A34A'}
+        color="#F97316" // Suppliers Orange
       />
       {/* 8→9 */}
       <ConnectionLine
@@ -133,7 +132,7 @@ export const ControlTowerHero3D: React.FC<ControlTowerHero3DProps> = ({
         end={controlTowerNodes[8].position}
         packetCount={1}
         speed={activeNodeId === 'node-procurement' || activeNodeId === 'node-risk' ? 0.6 : 0.35}
-        color="#F43F5E"
+        color="#10B981" // Procurement Emerald
       />
       {/* 9→1 (Closed Loop) */}
       <ConnectionLine
@@ -141,7 +140,7 @@ export const ControlTowerHero3D: React.FC<ControlTowerHero3DProps> = ({
         end={controlTowerNodes[0].position}
         packetCount={1}
         speed={activeNodeId === 'node-risk' || activeNodeId === 'node-demand' ? 0.6 : 0.35}
-        color={isLight ? '#047857' : '#15803D'}
+        color="#EF4444" // Risk Red
       />
 
       {/* Render all 9 Pipeline Nodes — minimal float */}

@@ -1,35 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { CinematicCard } from '../ui/CinematicCard';
 import { Badge } from '../ui/Badge';
 import { Layers } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme';
 import { type MaterialRequirementContract } from '../../services/api/sopApi';
-import { LoadingState, ErrorState, EmptyState } from '../ui/States';
+import { EmptyState } from '../ui/States';
 
-export const BomExplosionModule: React.FC = () => {
+interface BomExplosionModuleProps {
+  data: MaterialRequirementContract | null;
+}
+
+export const BomExplosionModule: React.FC<BomExplosionModuleProps> = ({ data }) => {
   const { mode } = useTheme();
   const isLight = mode === 'light';
-  
-  const [data, setData] = useState<MaterialRequirementContract | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const handleSopRunCompleted = (event: Event) => {
-      const customEvent = event as CustomEvent<MaterialRequirementContract>;
-      if (customEvent.detail) {
-        setData(customEvent.detail);
-        setLoading(false);
-        setError(null);
-      }
-    };
-
-    window.addEventListener('sop-run-completed', handleSopRunCompleted);
-    return () => window.removeEventListener('sop-run-completed', handleSopRunCompleted);
-  }, []);
-
-  if (loading) return <LoadingState message="Fetching material requirements..." />;
-  if (error) return <ErrorState error={error} onRetry={() => {}} />;
 
   return (
     <CinematicCard
@@ -79,7 +62,7 @@ export const BomExplosionModule: React.FC = () => {
                   <Badge variant="cyan">{data.plant_id}</Badge>
                 </td>
                 <td style={{ padding: '10px 10px' }}>
-                  <Badge variant={data.priority === 'HIGH' ? 'rose' : 'cyan'}>
+                  <Badge variant={data.priority === 'HIGH' ? 'rose' : (data.priority === 'MEDIUM' ? 'amber' : 'cyan')}>
                     {data.priority}
                   </Badge>
                 </td>
@@ -88,8 +71,8 @@ export const BomExplosionModule: React.FC = () => {
               <tr>
                 <td colSpan={5} style={{ padding: '40px 0' }}>
                   <EmptyState 
-                    title="No material plan available" 
-                    message="Run S&OP to generate material requirements."
+                    title="No material requirement available" 
+                    message="Run S&OP to generate the current material requirement."
                   />
                 </td>
               </tr>

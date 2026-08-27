@@ -4,33 +4,33 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { ControlTowerHero } from '../components/dashboard/ControlTowerHero';
 import { ControlTowerKpis } from '../components/dashboard/ControlTowerKpis';
 import { ForecastVsActualChart } from '../components/dashboard/ForecastVsActualChart';
-import { SopHealthModule } from '../components/dashboard/SopHealthModule';
 import { MaterialRequirementsModule } from '../components/dashboard/MaterialRequirementsModule';
 import { ProcurementAllocationModule } from '../components/dashboard/ProcurementAllocationModule';
 import { SupplierRiskModule } from '../components/dashboard/SupplierRiskModule';
-import { AiInsightsModule } from '../components/dashboard/AiInsightsModule';
-import { RecentActivityModule } from '../components/dashboard/RecentActivityModule';
+import { SopHealthModule } from '../components/dashboard/SopHealthModule';
 import { useMediaQuery } from '../hooks/useMediaQuery';
+import { useDashboardData } from '../hooks/useDashboardData';
+import { useOutletContext } from 'react-router-dom';
+import type { AppOutletContext } from '../layouts/AppLayout';
 
 export const DashboardPage: React.FC = () => {
   const isTablet = useMediaQuery('(max-width: 1024px)');
+  const { data } = useDashboardData();
+  const sessionContext = useOutletContext<AppOutletContext>();
 
   return (
     <PageTransitionLayout>
       <PageHeader
         title="Supply Chain Control Tower"
-        subtitle="Autonomous S&OP intelligence, multi-echelon buffer balancing & Google OR-Tools MILP optimization"
-        badgeText="OR-Tools MILP • Live"
-        badgeVariant="cyan"
+        subtitle="Unified visibility across demand, inventory, suppliers, planning and procurement."
       />
 
-      {/* Signature 3D Hero Visualization with Node Telemetry Inspector */}
+      {/* PROTECTED: 3D Hero */}
       <ControlTowerHero />
 
-      {/* 8 Animated Count-Up KPI Cards */}
-      <ControlTowerKpis />
+      {/* KPIs built from GET data and session state */}
+      <ControlTowerKpis data={data} sessionContext={sessionContext} />
 
-      {/* Operational Modules Responsive Layout */}
       <div
         style={{
           display: 'grid',
@@ -39,19 +39,15 @@ export const DashboardPage: React.FC = () => {
           alignItems: 'start',
         }}
       >
-        {/* Left Column: Forecasting, Procurement MILP, and Material BOM */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <ForecastVsActualChart />
-          <ProcurementAllocationModule />
-          <MaterialRequirementsModule />
+          <ForecastVsActualChart demandHistory={data?.demandHistory} demandForecast={data?.demandForecast} />
+          <ProcurementAllocationModule latestProcurementResult={sessionContext?.latestProcurementResult} />
+          <MaterialRequirementsModule latestSopResult={sessionContext?.latestSopResult} />
         </div>
 
-        {/* Right Column: S&OP Health, Risk Radar, AI Insights, Activity Feed */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <SopHealthModule />
-          <SupplierRiskModule />
-          <AiInsightsModule />
-          <RecentActivityModule />
+          <SopHealthModule inventory={data?.inventory} />
+          <SupplierRiskModule suppliers={data?.suppliers} latestRiskResult={sessionContext?.latestRiskResult} />
         </div>
       </div>
     </PageTransitionLayout>

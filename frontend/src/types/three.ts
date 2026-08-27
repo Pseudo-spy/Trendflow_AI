@@ -13,6 +13,8 @@ export interface SupplyChainNodeData {
   riskScore: number; // 0 - 100
   city: string;
   country: string;
+  labelOffset?: [number, number, number];
+  customColor?: { primary: string; glow: string; emissiveDark: string; emissiveLight: string };
 }
 
 export interface SupplyChainConnection {

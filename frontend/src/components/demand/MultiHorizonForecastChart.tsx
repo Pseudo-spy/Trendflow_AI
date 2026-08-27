@@ -1,9 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo } from 'react';
 import { CinematicCard } from '../ui/CinematicCard';
 import { Badge } from '../ui/Badge';
-import { GlowButton } from '../ui/GlowButton';
-import { LoadingState, ErrorState, EmptyState } from '../ui/States';
-import { fetchDemandHistory, fetchDemandForecast, runForecast } from '../../services/api/demandApi';
+import { EmptyState } from '../ui/States';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -13,156 +11,74 @@ import {
   Tooltip,
   CartesianGrid,
 } from 'recharts';
-import { TrendingUp, Play } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme';
+import { type DemandHistoryItem, type DemandForecastItem } from '../../services/api/demandApi';
 
-export const MultiHorizonForecastChart: React.FC = () => {
-  const [horizon, setHorizon] = useState<'30D' | '60D' | '90D' | '180D'>('90D');
-  const [chartData, setChartData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+interface MultiHorizonForecastChartProps {
+  historyData: DemandHistoryItem[];
+  forecastData: DemandForecastItem[];
+}
 
-  const [runningForecast, setRunningForecast] = useState(false);
-  const [forecastMessage, setForecastMessage] = useState<string | null>(null);
-
+export const MultiHorizonForecastChart: React.FC<MultiHorizonForecastChartProps> = ({
+  historyData,
+  forecastData,
+}) => {
   const { mode } = useTheme();
   const isLight = mode === 'light';
 
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      setForecastMessage(null);
+  const chartData = useMemo(() => {
+    const mergedData: Record<string, { month: string; actual?: number; forecast?: number }> = {};
 
-      const [historyRes, forecastRes] = await Promise.all([
-        fetchDemandHistory('TW001'),
-        fetchDemandForecast('TW001')
-      ]);
+    historyData.forEach(item => {
+      const date = new Date(item.demand_date);
+      const monthStr = date.toLocaleString('default', { month: 'short' });
+      if (!mergedData[monthStr]) mergedData[monthStr] = { month: monthStr };
+      mergedData[monthStr].actual = item.quantity_sold;
+    });
 
-      const mergedData: Record<string, any> = {};
+    forecastData.forEach(item => {
+      const date = new Date(item.forecast_date);
+      const monthStr = date.toLocaleString('default', { month: 'short' });
+      if (!mergedData[monthStr]) mergedData[monthStr] = { month: monthStr };
+      mergedData[monthStr].forecast = item.forecast_quantity;
+    });
 
-      if (historyRes.success && historyRes.data) {
-        historyRes.data.forEach(item => {
-          const date = new Date(item.demand_date);
-          const monthStr = date.toLocaleString('default', { month: 'short' });
-          if (!mergedData[monthStr]) mergedData[monthStr] = { month: monthStr };
-          mergedData[monthStr].actual = item.quantity_sold;
-        });
-      }
+    const monthsOrder = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return Object.values(mergedData).sort((a, b) =>
+      monthsOrder.indexOf(a.month) - monthsOrder.indexOf(b.month)
+    );
+  }, [historyData, forecastData]);
 
-      if (forecastRes.success && forecastRes.data) {
-        forecastRes.data.forEach(item => {
-          const date = new Date(item.forecast_date);
-          const monthStr = date.toLocaleString('default', { month: 'short' });
-          if (!mergedData[monthStr]) mergedData[monthStr] = { month: monthStr };
-          mergedData[monthStr].forecast = item.forecast_quantity;
-        });
-      }
-
-      // Convert dict to sorted array (assuming chronological order of months in the year)
-      const monthsOrder = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      const sortedArray = Object.values(mergedData).sort((a, b) => {
-        return monthsOrder.indexOf(a.month) - monthsOrder.indexOf(b.month);
-      });
-
-      setChartData(sortedArray);
-    } catch (err: any) {
-      setError(err.message || 'Failed to fetch demand data');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadData();
-  }, [horizon]);
-
-  const handleRunForecast = async () => {
-    try {
-      setRunningForecast(true);
-      setForecastMessage(null);
-      const res = await runForecast({ sku: 'TW001', horizon_months: 3 });
-      if (res.success) {
-        setForecastMessage(`Forecast updated! Model: ${res.model_version}, Confidence: ${res.confidence}%`);
-        await loadData();
-      }
-    } catch (err: any) {
-      setForecastMessage(`Error: ${err.message || 'Failed to run forecast'}`);
-    } finally {
-      setRunningForecast(false);
-    }
-  };
-
-  if (loading) return <LoadingState message="Fetching Multi-Horizon Demand..." />;
-  if (error) return <ErrorState error={error} onRetry={loadData} />;
-  if (chartData.length === 0) return <EmptyState title="No Demand Data" message="No historical or forecast data available." />;
+  if (chartData.length === 0) {
+    return <EmptyState title="No Demand Data" message="No historical or forecast data available for chart." />;
+  }
 
   return (
     <CinematicCard
-      title="Multi-Horizon Probabilistic Demand Forecast"
-      subtitle="Ensemble predictions powered by LightGBM + Prophet with seasonal confidence intervals"
+      title="Demand Trend Overview"
+      subtitle="Historical actuals and projected demand from backend data"
       icon={<TrendingUp size={18} color="#06B6D4" />}
       glowColor="cyan"
-      headerAction={
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          {/* Run Forecast Action */}
-          <GlowButton
-            variant="primary"
-            size="sm"
-            onClick={handleRunForecast}
-            disabled={runningForecast}
-            icon={<Play size={12} />}
-          >
-            {runningForecast ? 'Running...' : 'Run Forecast'}
-          </GlowButton>
-
-          {/* Horizon Selector */}
-          <div style={{ display: 'flex', gap: '4px' }}>
-            {(['30D', '60D', '90D', '180D'] as const).map((h) => (
-              <button
-                key={h}
-                onClick={() => setHorizon(h)}
-                style={{
-                  padding: '3px 8px',
-                  borderRadius: '6px',
-                  background: horizon === h ? (isLight ? '#D1FAE5' : '#071A11') : 'transparent',
-                  border: horizon === h ? '1px solid #16A34A' : '1px solid transparent',
-                  color: horizon === h ? (isLight ? '#064E3B' : '#34D399') : '#86A795',
-                  fontSize: '10px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                }}
-              >
-                {h}
-              </button>
-            ))}
-          </div>
-        </div>
-      }
     >
-      {/* Legend & Confidence Metadata */}
+      {/* Legend */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '14px', flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#86A795' }}>
           <span style={{ width: '10px', height: '10px', borderRadius: '2px', backgroundColor: '#34D399' }} />
-          <span>Historical POS Actuals</span>
+          <span>Historical Actuals</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#86A795' }}>
           <span style={{ width: '10px', height: '10px', borderRadius: '2px', backgroundColor: '#16A34A' }} />
-          <span>Projected Demand (Baseline)</span>
+          <span>Projected Demand</span>
         </div>
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px', alignItems: 'center' }}>
-          {forecastMessage && (
-            <span style={{ fontSize: '11px', color: forecastMessage.startsWith('Error') ? '#F43F5E' : '#10B981' }}>
-              {forecastMessage}
-            </span>
-          )}
+        <div style={{ marginLeft: 'auto' }}>
           <Badge variant="emerald">
-            Live Feed
+            {chartData.length} Months
           </Badge>
         </div>
       </div>
 
-      {/* Chart Canvas with proper Y-Axis spacing */}
+      {/* Chart */}
       <div style={{ width: '100%', height: '280px' }}>
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={chartData} margin={{ top: 10, right: 20, left: 15, bottom: 0 }}>
@@ -209,7 +125,6 @@ export const MultiHorizonForecastChart: React.FC = () => {
               fill="url(#colorActual)"
               name="Historical Actuals"
             />
-
             <Area
               animationDuration={400}
               type="monotone"

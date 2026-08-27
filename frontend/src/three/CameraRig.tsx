@@ -1,7 +1,6 @@
 import React, { useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
-import { useTheme } from '../hooks/useTheme';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { useReducedMotion } from 'framer-motion';
 
@@ -9,18 +8,19 @@ interface CameraRigProps {
   basePosition?: [number, number, number];
   intensity?: number;
   damping?: number;
+  enabled?: boolean;
 }
 
 export const CameraRig: React.FC<CameraRigProps> = ({
   basePosition = [0, 6, 18],
   intensity = 0.15,
   damping = 0.05,
+  enabled = true,
 }) => {
   const { camera, pointer } = useThree();
-  const { cameraParallax } = useTheme();
   const isMobile = useMediaQuery('(max-width: 768px)');
   const prefersReducedMotion = useReducedMotion();
-  const shouldParallax = cameraParallax && !isMobile && !prefersReducedMotion;
+  const shouldParallax = enabled && !isMobile && !prefersReducedMotion;
   
   const targetVec = useRef(new THREE.Vector3(...basePosition));
 

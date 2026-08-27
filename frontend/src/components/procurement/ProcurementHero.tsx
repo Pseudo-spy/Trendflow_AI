@@ -1,21 +1,72 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { SceneCanvas } from '../../three/SceneCanvas';
-import { procurementSuppliers } from '../../scenes/mock3DData';
 const ProcurementAllocation3D = React.lazy(() => import('../../scenes/ProcurementAllocation3D').then(m => ({ default: m.ProcurementAllocation3D })));
-import type { SupplyChainNodeData } from '../../types/three';
-import { Badge } from '../ui/Badge';
 import { GlowButton } from '../ui/GlowButton';
 import { Compass, Cpu, Zap } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
+import type { OptimizationResponse } from '../../services/api/procurementApi';
 
-export const ProcurementHero: React.FC = () => {
-  const [selectedSupplier, setSelectedSupplier] = useState<SupplyChainNodeData | null>(procurementSuppliers[0]);
+export interface Procurement3DSupplier {
+  supplierId: string;
+  position: [number, number, number];
+  quantity: number;
+  percentage: number;
+  unitPrice: number;
+  riskScore: number;
+}
+
+interface ProcurementHeroProps {
+  result: OptimizationResponse | null;
+}
+
+// Visual Layout Constants for up to 8 suppliers
+const VISUAL_LAYOUT_CONSTANTS: [number, number, number][] = [
+  [-6.0, 2.5, -1.0],
+  [-2.0, 3.5, 2.0],
+  [2.0, 3.5, -2.0],
+  [6.0, 2.5, 1.0],
+  [0.0, -3.2, 2.5],
+  [-5.0, -2.5, 1.5],
+  [5.0, -2.5, -1.5],
+  [0.0, 4.0, 0.0]
+];
+
+export const ProcurementHero: React.FC<ProcurementHeroProps> = ({ result }) => {
   const { mode, cameraParallax, setCameraParallax } = useTheme();
   const isLight = mode === 'light';
   const isMobile = useMediaQuery('(max-width: 768px)');
+  
+  const suppliers: Procurement3DSupplier[] = useMemo(() => {
+    if (!result || !result.allocation) return [];
+    
+    return result.allocation.map((alloc, idx): Procurement3DSupplier => {
+      return {
+        supplierId: alloc.supplier_id,
+        position: VISUAL_LAYOUT_CONSTANTS[idx % VISUAL_LAYOUT_CONSTANTS.length],
+        quantity: alloc.quantity,
+        percentage: alloc.percentage,
+        unitPrice: alloc.unit_price,
+        riskScore: alloc.risk_score,
+      };
+    });
+  }, [result]);
 
-  const activeSupplier = selectedSupplier || procurementSuppliers[0];
+  const [selectedSupplierId, setSelectedSupplierId] = useState<string | null>(null);
+
+  const activeSupplier = useMemo(() => {
+    if (!suppliers.length) return null;
+    return suppliers.find(s => s.supplierId === selectedSupplierId) || suppliers[0];
+  }, [suppliers, selectedSupplierId]);
+
+  const isResultAvailable = !!result;
+  const displaySupplier = activeSupplier || {
+    supplierId: '—',
+    quantity: 0,
+    percentage: 0,
+    unitPrice: 0,
+    riskScore: 0,
+  };
 
   return (
     <div
@@ -75,14 +126,11 @@ export const ProcurementHero: React.FC = () => {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <h2 style={{ fontSize: '18px', fontWeight: 800, color: isLight ? '#0F172A' : '#F8FAFC' }}>
-                3D Optimal Supplier Allocation Flow
+                3D Supplier Allocation Flow
               </h2>
-              <Badge variant="cyan" pulse>
-                OR-TOOLS MILP
-              </Badge>
             </div>
             <p style={{ fontSize: '11px', color: '#94A3B8' }}>
-              125,000 Units allocated across tiered MOQs, lead times, and customs tariffs
+              {result ? `${result.total_allocated.toLocaleString()} Units allocated across network` : 'Awaiting procurement run to visualize supplier allocation'}
             </p>
           </div>
         </div>
@@ -169,11 +217,14 @@ export const ProcurementHero: React.FC = () => {
             enableParallax={cameraParallax}
             cameraPosition={[0, 5, 16]}
             fov={44}
+            autoRotate={true}
           >
             <React.Suspense fallback={null}>
               <ProcurementAllocation3D
-                selectedSupplier={selectedSupplier}
-                onSelectSupplier={setSelectedSupplier}
+                suppliers={suppliers}
+                result={result}
+                selectedSupplierId={selectedSupplierId}
+                onSelectSupplier={(id) => setSelectedSupplierId(id)}
               />
             </React.Suspense>
           </SceneCanvas>
@@ -192,64 +243,62 @@ export const ProcurementHero: React.FC = () => {
             boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
           }}
         >
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-              <span style={{ fontSize: '10px', fontWeight: 800, color: '#06B6D4', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                Supplier Allocation Inspector
-              </span>
-              <Badge variant={activeSupplier.status === 'optimal' ? 'emerald' : 'amber'}>
-                {activeSupplier.status.toUpperCase()}
-              </Badge>
-            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                <span style={{ fontSize: '10px', fontWeight: 800, color: '#06B6D4', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  Supplier Allocation Inspector
+                </span>
+              </div>
 
-            <h3 style={{ fontSize: '17px', fontWeight: 800, color: isLight ? '#0F172A' : '#F8FAFC', marginBottom: '2px' }}>
-              {activeSupplier.name}
-            </h3>
-            <p style={{ fontSize: '11px', color: '#94A3B8', marginBottom: '14px' }}>
-              {activeSupplier.city} • {activeSupplier.country}
-            </p>
+              <h3 style={{ fontSize: '17px', fontWeight: 800, color: isLight ? '#0F172A' : '#F8FAFC', marginBottom: '14px' }}>
+                {displaySupplier.supplierId}
+              </h3>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '14px' }}>
-              <div style={{ padding: '10px', borderRadius: '8px', background: isLight ? 'rgba(15, 23, 42, 0.04)' : 'rgba(255, 255, 255, 0.04)' }}>
-                <div style={{ fontSize: '10px', color: '#64748B' }}>Allocated Volume</div>
-                <div style={{ fontSize: '16px', fontWeight: 800, color: '#06B6D4', fontFamily: "'JetBrains Mono', monospace" }}>
-                  {activeSupplier.throughput.toLocaleString()} u
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '14px' }}>
+                <div style={{ padding: '10px', borderRadius: '8px', background: isLight ? 'rgba(15, 23, 42, 0.04)' : 'rgba(255, 255, 255, 0.04)' }}>
+                  <div style={{ fontSize: '10px', color: '#64748B' }}>Allocated Quantity</div>
+                  <div style={{ fontSize: '16px', fontWeight: 800, color: '#06B6D4', fontFamily: "'JetBrains Mono', monospace" }}>
+                    {displaySupplier.quantity.toLocaleString()}
+                  </div>
+                </div>
+                <div style={{ padding: '10px', borderRadius: '8px', background: isLight ? 'rgba(15, 23, 42, 0.04)' : 'rgba(255, 255, 255, 0.04)' }}>
+                  <div style={{ fontSize: '10px', color: '#64748B' }}>Allocation %</div>
+                  <div style={{ fontSize: '16px', fontWeight: 800, color: '#16A34A', fontFamily: "'JetBrains Mono', monospace" }}>
+                    {displaySupplier.percentage.toFixed(1)}%
+                  </div>
+                </div>
+                <div style={{ padding: '10px', borderRadius: '8px', background: isLight ? 'rgba(15, 23, 42, 0.04)' : 'rgba(255, 255, 255, 0.04)' }}>
+                  <div style={{ fontSize: '10px', color: '#64748B' }}>Unit Price</div>
+                  <div style={{ fontSize: '16px', fontWeight: 800, color: '#6366F1', fontFamily: "'JetBrains Mono', monospace" }}>
+                    {displaySupplier.unitPrice.toFixed(2)}
+                  </div>
+                </div>
+                <div style={{ padding: '10px', borderRadius: '8px', background: isLight ? 'rgba(15, 23, 42, 0.04)' : 'rgba(255, 255, 255, 0.04)' }}>
+                  <div style={{ fontSize: '10px', color: '#64748B' }}>Risk Score</div>
+                  <div style={{ fontSize: '16px', fontWeight: 800, color: displaySupplier.riskScore > 0.50 ? '#F43F5E' : displaySupplier.riskScore > 0.20 ? '#F59E0B' : '#16A34A', fontFamily: "'JetBrains Mono', monospace" }}>
+                    {displaySupplier.riskScore.toFixed(2)}
+                  </div>
                 </div>
               </div>
-              <div style={{ padding: '10px', borderRadius: '8px', background: isLight ? 'rgba(15, 23, 42, 0.04)' : 'rgba(255, 255, 255, 0.04)' }}>
-                <div style={{ fontSize: '10px', color: '#64748B' }}>Lead Time</div>
-                <div style={{ fontSize: '16px', fontWeight: 800, color: '#6366F1', fontFamily: "'JetBrains Mono', monospace" }}>
-                  {activeSupplier.leadTimeDays} days
-                </div>
-              </div>
-              <div style={{ padding: '10px', borderRadius: '8px', background: isLight ? 'rgba(15, 23, 42, 0.04)' : 'rgba(255, 255, 255, 0.04)' }}>
-                <div style={{ fontSize: '10px', color: '#64748B' }}>Supplier Capacity</div>
-                <div style={{ fontSize: '16px', fontWeight: 800, color: '#16A34A', fontFamily: "'JetBrains Mono', monospace" }}>
-                  {activeSupplier.capacity}%
-                </div>
-              </div>
-              <div style={{ padding: '10px', borderRadius: '8px', background: isLight ? 'rgba(15, 23, 42, 0.04)' : 'rgba(255, 255, 255, 0.04)' }}>
-                <div style={{ fontSize: '10px', color: '#64748B' }}>Risk Score</div>
-                <div style={{ fontSize: '16px', fontWeight: 800, color: activeSupplier.riskScore > 30 ? '#F43F5E' : '#16A34A', fontFamily: "'JetBrains Mono', monospace" }}>
-                  {activeSupplier.riskScore} / 100
-                </div>
+
+              <div
+                style={{
+                  padding: '10px 12px',
+                  borderRadius: '8px',
+                  background: isLight ? 'rgba(99, 102, 241, 0.06)' : 'rgba(99, 102, 241, 0.08)',
+                  border: isLight ? '1px solid rgba(99, 102, 241, 0.15)' : '1px solid rgba(99, 102, 241, 0.2)',
+                  fontSize: '11px',
+                  color: isLight ? '#4338CA' : '#818CF8',
+                  lineHeight: '1.4',
+                }}
+              >
+                {isResultAvailable ? (
+                  <><strong>Backend Procurement Allocation:</strong> Distributed volume across network.</>
+                ) : (
+                  <><strong>No procurement allocation yet.</strong><br/>Run Procurement Allocation to populate this inspector.</>
+                )}
               </div>
             </div>
-
-            <div
-              style={{
-                padding: '10px 12px',
-                borderRadius: '8px',
-                background: isLight ? 'rgba(99, 102, 241, 0.06)' : 'rgba(99, 102, 241, 0.08)',
-                border: isLight ? '1px solid rgba(99, 102, 241, 0.15)' : '1px solid rgba(99, 102, 241, 0.2)',
-                fontSize: '11px',
-                color: isLight ? '#4338CA' : '#818CF8',
-                lineHeight: '1.4',
-              }}
-            >
-              <strong>MILP Solver Output:</strong> Allocation satisfies vendor MOQ discounts and minimizes aggregate landed tariff cost.
-            </div>
-          </div>
 
           <div style={{ marginTop: '12px' }}>
             <GlowButton variant="primary" size="sm" icon={<Zap size={13} />} style={{ width: '100%' }} disabled={true}>
@@ -260,13 +309,13 @@ export const ProcurementHero: React.FC = () => {
       </div>
 
       {/* Supplier Selector Ribbon */}
-      <div style={{ display: 'flex', gap: '8px', marginTop: '14px', overflowX: 'auto', paddingBottom: '4px' }}>
-        {procurementSuppliers.map((supp) => {
-          const isSelected = activeSupplier.id === supp.id;
+      <div style={{ display: 'flex', gap: '8px', marginTop: '14px', overflowX: 'auto', paddingBottom: '4px', minHeight: '34px' }}>
+        {suppliers.map((supp) => {
+          const isSelected = activeSupplier?.supplierId === supp.supplierId;
           return (
             <button
-              key={supp.id}
-              onClick={() => setSelectedSupplier(supp)}
+              key={supp.supplierId}
+              onClick={() => setSelectedSupplierId(supp.supplierId)}
               style={{
                 padding: '6px 12px',
                 borderRadius: '8px',
@@ -290,7 +339,7 @@ export const ProcurementHero: React.FC = () => {
                 transition: 'all 0.15s ease',
               }}
             >
-              {supp.name}
+              {supp.supplierId}
             </button>
           );
         })}

@@ -1,18 +1,16 @@
 import type { LoginCredentials, UserSession } from '../types/auth';
-import { supabase } from '../lib/supabase';
 
-const mapUserSession = (user: any, token?: string): UserSession => {
-  const email = user.email || '';
-  const fullName = user.user_metadata?.full_name || user.user_metadata?.name || email.split('@')[0];
+const mapMockUserSession = (email: string): UserSession => {
+  const fullName = email.split('@')[0];
   
   return {
-    id: user.id,
+    id: 'mock-user-id',
     email: email,
     name: fullName,
-    role: user.user_metadata?.role || 'Pending Profile (Role)',
-    organization: user.user_metadata?.organization || 'Pending Profile (Org)',
+    role: 'Supply Chain Planner',
+    organization: 'TrendFlow Inc',
     avatarInitials: fullName.substring(0, 2).toUpperCase() || 'U',
-    token: token,
+    token: 'mock-token',
   };
 };
 
@@ -22,14 +20,10 @@ export const authService = {
       throw new Error('Please provide both email and password.');
     }
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: credentials.email,
-      password: credentials.password,
-    });
-
-    if (error) {
-      throw error;
-    }
+    // Temporary Frontend Authentication
+    // Bypassing real validation for development showcase flow
+    sessionStorage.setItem('temporaryAuthenticated', 'true');
+    sessionStorage.setItem('temporaryEmail', credentials.email);
 
     if (credentials.rememberMe) {
       localStorage.setItem('tf_remember_email', credentials.email);
@@ -37,21 +31,22 @@ export const authService = {
       localStorage.removeItem('tf_remember_email');
     }
 
-    return mapUserSession(data.user, data.session?.access_token);
+    return mapMockUserSession(credentials.email);
   },
 
   logout: async (): Promise<void> => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error('Logout error:', error);
-    }
+    // Temporary Frontend Authentication
+    sessionStorage.removeItem('temporaryAuthenticated');
+    sessionStorage.removeItem('temporaryEmail');
   },
 
   getCurrentUser: async (): Promise<UserSession | null> => {
-    const { data, error } = await supabase.auth.getSession();
-    if (error || !data.session) {
+    // Temporary Frontend Authentication
+    const isAuth = sessionStorage.getItem('temporaryAuthenticated') === 'true';
+    if (!isAuth) {
       return null;
     }
-    return mapUserSession(data.session.user, data.session.access_token);
+    const email = sessionStorage.getItem('temporaryEmail') || 'planner@trendflow.ai';
+    return mapMockUserSession(email);
   },
 };

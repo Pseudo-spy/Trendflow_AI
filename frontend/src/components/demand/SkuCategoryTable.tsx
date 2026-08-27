@@ -1,87 +1,184 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { CinematicCard } from '../ui/CinematicCard';
 import { Badge } from '../ui/Badge';
-import { Layers } from 'lucide-react';
+import { EmptyState } from '../ui/States';
+import { Calendar } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme';
+import { type DemandHistoryItem } from '../../services/api/demandApi';
 
-const categoryBreakdown = [
-  { category: 'Performance Tech Tees', skus: 14, projected: '58,000 u', yoy: '+14.2%', seasonalIdx: '1.34x', promoLift: '+22.0%', status: 'Surge', badge: 'emerald' as const },
-  { category: 'Urban Streetwear Hoodies', skus: 10, projected: '42,000 u', yoy: '+6.8%', seasonalIdx: '0.88x', promoLift: '+15.0%', status: 'Stable', badge: 'cyan' as const },
-  { category: 'Seamless Active Leggings', skus: 12, projected: '38,000 u', yoy: '+18.5%', seasonalIdx: '1.15x', promoLift: '+28.0%', status: 'Viral Lift', badge: 'emerald' as const },
-  { category: 'Eco-Wash Denim Line', skus: 8, projected: '28,000 u', yoy: '+3.2%', seasonalIdx: '1.02x', promoLift: '+8.0%', status: 'Normal', badge: 'cyan' as const },
-  { category: 'Accessories & Headwear', skus: 4, projected: '18,200 u', yoy: '+5.0%', seasonalIdx: '1.10x', promoLift: '+12.0%', status: 'Normal', badge: 'cyan' as const },
-];
+interface DemandHistoryTableProps {
+  data: DemandHistoryItem[];
+}
 
-export const SkuCategoryTable: React.FC = () => {
+export const DemandHistoryTable: React.FC<DemandHistoryTableProps> = ({ data }) => {
   const { mode } = useTheme();
   const isLight = mode === 'light';
 
+  const formatDate = (dateStr: string): string => {
+    try {
+      return new Date(dateStr).toLocaleDateString('en-IN', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      });
+    } catch {
+      return dateStr;
+    }
+  };
+
+  const formatPercent = (val: number | null | undefined): string => {
+    if (val == null) return '—';
+    return `${val.toFixed(1)}%`;
+  };
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5);
+
+  // Reset page when dataset changes (e.g. from filtering)
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [data]);
+
+  const totalRecords = data.length;
+  const totalPages = Math.ceil(totalRecords / pageSize);
+  const startIndex = (currentPage - 1) * pageSize;
+  const visibleRecords = data.slice(startIndex, startIndex + pageSize);
+
   return (
     <CinematicCard
-      title="Category & SKU Cluster Demand Breakdown"
-      subtitle="Granular unit forecast with seasonality velocity indices and promotional lift elasticity"
-      icon={<Layers size={18} color="#06B6D4" />}
+      title="Historical Demand"
+      subtitle="Recorded demand history from backend"
+      icon={<Calendar size={18} color="#06B6D4" />}
       glowColor="cyan"
-      headerAction={<Badge variant="cyan">48 Active SKU Clusters</Badge>}
+      headerAction={<Badge variant="cyan">{data.length} Records</Badge>}
     >
       <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
-          <thead>
-            <tr
-              style={{
-                borderBottom: isLight ? '1px solid rgba(15, 23, 42, 0.1)' : '1px solid rgba(255, 255, 255, 0.08)',
-                textAlign: 'left',
-                color: '#64748B',
-                fontSize: '11px',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-              }}
-            >
-              <th style={{ padding: '8px 10px' }}>Product Line</th>
-              <th style={{ padding: '8px 10px' }}>SKU Count</th>
-              <th style={{ padding: '8px 10px' }}>Q3 Projected</th>
-              <th style={{ padding: '8px 10px' }}>YoY Growth</th>
-              <th style={{ padding: '8px 10px' }}>Seasonality</th>
-              <th style={{ padding: '8px 10px' }}>Promo Lift</th>
-              <th style={{ padding: '8px 10px' }}>Trend Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {categoryBreakdown.map((row, idx) => (
+        {data.length === 0 ? (
+          <EmptyState title="No History Data" message="No historical demand records available." />
+        ) : (
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+            <thead>
               <tr
-                key={idx}
                 style={{
-                  borderBottom: isLight ? '1px solid rgba(15, 23, 42, 0.04)' : '1px solid rgba(255, 255, 255, 0.04)',
+                  borderBottom: isLight ? '1px solid rgba(15, 23, 42, 0.1)' : '1px solid rgba(255, 255, 255, 0.08)',
+                  textAlign: 'left',
+                  color: '#64748B',
+                  fontSize: '11px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
                 }}
               >
-                <td style={{ padding: '10px 10px', fontWeight: 700, color: isLight ? '#0F172A' : '#F8FAFC' }}>
-                  {row.category}
-                </td>
-                <td style={{ padding: '10px 10px', color: '#94A3B8' }}>
-                  {row.skus} SKUs
-                </td>
-                <td style={{ padding: '10px 10px', fontWeight: 800, color: isLight ? '#0F172A' : '#F8FAFC', fontFamily: "'JetBrains Mono', monospace" }}>
-                  {row.projected}
-                </td>
-                <td style={{ padding: '10px 10px', fontWeight: 700, color: '#16A34A', fontFamily: "'JetBrains Mono', monospace" }}>
-                  {row.yoy}
-                </td>
-                <td style={{ padding: '10px 10px', color: '#06B6D4', fontWeight: 600, fontFamily: "'JetBrains Mono', monospace" }}>
-                  {row.seasonalIdx}
-                </td>
-                <td style={{ padding: '10px 10px', color: '#6366F1', fontWeight: 700, fontFamily: "'JetBrains Mono', monospace" }}>
-                  {row.promoLift}
-                </td>
-                <td style={{ padding: '10px 10px' }}>
-                  <Badge variant={row.badge}>
-                    {row.status}
-                  </Badge>
-                </td>
+                <th style={{ padding: '8px 12px' }}>SKU</th>
+                <th style={{ padding: '8px 12px' }}>Demand Date</th>
+                <th style={{ padding: '8px 12px' }}>Quantity Sold</th>
+                <th style={{ padding: '8px 12px' }}>Promotion</th>
+                <th style={{ padding: '8px 12px' }}>Markdown %</th>
+                <th style={{ padding: '8px 12px' }}>Sell-through Rate</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {visibleRecords.map((item, idx) => (
+                <tr
+                  key={`${item.sku}-${item.demand_date}-${idx}`}
+                  style={{
+                    borderBottom: isLight
+                      ? '1px solid rgba(15, 23, 42, 0.04)'
+                      : '1px solid rgba(255, 255, 255, 0.04)',
+                    transition: 'background 0.15s',
+                  }}
+                  onMouseEnter={e =>
+                    (e.currentTarget.style.background = isLight
+                      ? 'rgba(15, 23, 42, 0.02)'
+                      : 'rgba(255, 255, 255, 0.02)')
+                  }
+                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                >
+                  <td style={{ padding: '7px 12px', fontWeight: 800, color: '#06B6D4', fontFamily: "'JetBrains Mono', monospace" }}>
+                    {item.sku}
+                  </td>
+                  <td style={{ padding: '7px 12px', color: isLight ? '#0F172A' : '#F8FAFC' }}>
+                    {formatDate(item.demand_date)}
+                  </td>
+                  <td style={{ padding: '7px 12px', fontWeight: 700, color: isLight ? '#0F172A' : '#F8FAFC', fontFamily: "'JetBrains Mono', monospace" }}>
+                    {item.quantity_sold.toLocaleString()}
+                  </td>
+                  <td style={{ padding: '7px 12px' }}>
+                    {item.promotion ? (
+                      <Badge variant="emerald">Yes</Badge>
+                    ) : (
+                      <Badge variant="muted">No</Badge>
+                    )}
+                  </td>
+                  <td style={{ padding: '7px 12px', color: '#94A3B8', fontFamily: "'JetBrains Mono', monospace" }}>
+                    {item.markdown_percentage != null ? `${item.markdown_percentage}%` : '—'}
+                  </td>
+                  <td style={{ padding: '7px 12px', color: '#16A34A', fontWeight: 700, fontFamily: "'JetBrains Mono', monospace" }}>
+                    {formatPercent(item.sell_through_rate)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
+
+      {/* Pagination Controls */}
+      {data.length > 0 && (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', padding: '0 8px', fontSize: '13px', color: '#64748B', flexWrap: 'wrap', gap: '16px' }}>
+          <div>
+            Showing {Math.min(startIndex + 1, totalRecords)}–{Math.min(startIndex + pageSize, totalRecords)} of {totalRecords.toLocaleString()}
+          </div>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>Rows per page:</span>
+              <select 
+                value={pageSize} 
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                style={{
+                  background: isLight ? '#F1F5F9' : 'rgba(15, 23, 42, 0.4)',
+                  border: isLight ? '1px solid #E2E8F0' : '1px solid rgba(255, 255, 255, 0.1)',
+                  color: isLight ? '#0F172A' : '#F8FAFC',
+                  padding: '4px 8px',
+                  borderRadius: '6px',
+                  outline: 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+              </select>
+            </div>
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <button 
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                style={{ cursor: currentPage === 1 ? 'not-allowed' : 'pointer', background: 'transparent', border: 'none', padding: '4px', color: currentPage === 1 ? '#475569' : '#06B6D4', fontWeight: 600 }}
+              >
+                Previous
+              </button>
+              
+              <span style={{ color: isLight ? '#0F172A' : '#F8FAFC', fontWeight: 500, fontFamily: "'JetBrains Mono', monospace" }}>
+                {currentPage} / {Math.max(1, totalPages)}
+              </span>
+              
+              <button 
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages || totalPages === 0}
+                style={{ cursor: currentPage === totalPages || totalPages === 0 ? 'not-allowed' : 'pointer', background: 'transparent', border: 'none', padding: '4px', color: currentPage === totalPages || totalPages === 0 ? '#475569' : '#06B6D4', fontWeight: 600 }}
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </CinematicCard>
   );
 };

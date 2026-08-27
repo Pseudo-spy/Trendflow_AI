@@ -1,217 +1,260 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { CinematicCard } from '../ui/CinematicCard';
 import { Badge } from '../ui/Badge';
-import type { ScenarioParameters } from '../../types/scenario';
-import { Sliders } from 'lucide-react';
+import { Sliders, Play } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme';
+import { GlowButton } from '../ui/GlowButton';
+import { type ScenarioRunRequest, type ScenarioName } from '../../services/api/scenarioApi';
+import { useOutletContext } from 'react-router-dom';
 
 interface ScenarioControlsProps {
-  params: ScenarioParameters;
-  onChangeParams: (newParams: ScenarioParameters) => void;
+  onRunSimulation: (request: ScenarioRunRequest) => void;
+  isLoading: boolean;
+  onInputChange?: () => void;
+  apiError?: string | null;
 }
 
 export const ScenarioControls: React.FC<ScenarioControlsProps> = ({
-  params,
-  onChangeParams,
+  onRunSimulation,
+  isLoading,
+  onInputChange,
+  apiError,
 }) => {
   const { mode } = useTheme();
   const isLight = mode === 'light';
+  
+  const context = useOutletContext<any>();
+  const sopResult = context?.latestSopResult;
 
-  const setParam = <K extends keyof ScenarioParameters>(key: K, value: ScenarioParameters[K]) => {
-    onChangeParams({
-      ...params,
-      [key]: value,
+  const [scenarioName, setScenarioName] = useState<ScenarioName>('supplier_disruption');
+  const [materialId, setMaterialId] = useState<string>('MAT001');
+  const [requiredQuantity, setRequiredQuantity] = useState<number>(30000);
+  const [requiredDate, setRequiredDate] = useState<string>('2026-10-15');
+  const [plantId, setPlantId] = useState<string>('PLANT001');
+  const [priority, setPriority] = useState<string>('HIGH');
+  const [targetSupplierId, setTargetSupplierId] = useState<string>('SUP001');
+  const [magnitude, setMagnitude] = useState<number>(0.7);
+
+  useEffect(() => {
+    if (sopResult?.material_id && !materialId) {
+      setMaterialId(sopResult.material_id);
+    }
+  }, [sopResult, materialId]);
+
+  // Handle conditional logic for Target Supplier and Magnitude label
+  let magnitudeLabel = 'Magnitude';
+  let magnitudeHelper = '';
+  let showTargetSupplier = true;
+
+  if (scenarioName === 'supplier_disruption') {
+    magnitudeLabel = 'Disruption Magnitude';
+    magnitudeHelper = 'e.g. 0.7';
+  } else if (scenarioName === 'lead_time_shock') {
+    magnitudeLabel = 'Lead Time Shock';
+    magnitudeHelper = 'value in days, e.g. 10';
+  } else if (scenarioName === 'capacity_reduction') {
+    magnitudeLabel = 'Capacity Reduction';
+    magnitudeHelper = '0.5 = 50%';
+  } else if (scenarioName === 'demand_spike') {
+    magnitudeLabel = 'Demand Increase';
+    magnitudeHelper = '0.2 = +20%';
+    showTargetSupplier = false;
+  }
+
+  const handleRun = () => {
+    if (!materialId.trim()) return;
+    onRunSimulation({
+      scenario_name: scenarioName,
+      material_id: materialId.trim(),
+      required_quantity: requiredQuantity,
+      required_date: requiredDate,
+      plant_id: plantId.trim(),
+      priority: priority,
+      target_supplier_id: showTargetSupplier ? targetSupplierId.trim() : null,
+      magnitude: magnitude
     });
+  };
+
+  const inputStyle = {
+    width: '100%',
+    padding: '8px 12px',
+    borderRadius: '6px',
+    border: isLight ? '1px solid rgba(15, 23, 42, 0.1)' : '1px solid rgba(255, 255, 255, 0.1)',
+    background: isLight ? '#FFFFFF' : 'rgba(15, 23, 42, 0.5)',
+    color: isLight ? '#0F172A' : '#F8FAFC',
+    fontSize: '13px',
+    outline: 'none',
+  };
+
+  const disabledInputStyle = {
+    ...inputStyle,
+    opacity: 0.5,
+    cursor: 'not-allowed'
+  };
+
+  const labelStyle = {
+    fontSize: '12px',
+    fontWeight: 600,
+    color: isLight ? '#0F172A' : '#F8FAFC',
+    marginBottom: '8px',
+    display: 'block',
   };
 
   return (
     <CinematicCard
-      title="Scenario Stress-Testing Parameters"
-      subtitle="Interact with demand multipliers, supplier disruption flags, capacity thresholds, and tariff variations"
+      title="Scenario Configuration"
+      subtitle="Select a scenario type, material, and magnitude to evaluate supply chain resilience."
       icon={<Sliders size={18} color="#06B6D4" />}
       glowColor="cyan"
-      headerAction={<Badge variant="cyan">6 Stress Multipliers</Badge>}
+      headerAction={<Badge variant="cyan">{sopResult ? 'S&OP Prefilled' : 'Manual Input'}</Badge>}
     >
-      {/* 4 One-Click Presets */}
-      <div style={{ marginBottom: '20px' }}>
-        <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', marginBottom: '8px' }}>
-          One-Click Stress Scenarios
-        </div>
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <button
-            onClick={() => {}}
-            disabled={true}
-            style={{
-              padding: '10px 12px',
-              borderRadius: '8px',
-              background: isLight ? 'rgba(15, 23, 42, 0.05)' : 'rgba(255, 255, 255, 0.05)',
-              border: '1px solid rgba(15, 23, 42, 0.1)',
-              color: '#94A3B8',
-              fontSize: '11px',
-              fontWeight: 700,
-              cursor: 'not-allowed',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              textAlign: 'left',
-            }}
-          >
-            <div>
-              <div>Backend Blocked</div>
-              <div style={{ fontSize: '9px', fontWeight: 500, color: '#94A3B8' }}>Presets Pending API Update</div>
-            </div>
-          </button>
-        </div>
-      </div>
-
-      {/* 6 Slider & Dropdown Controls Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
-        {/* 1. Demand Change */}
-        <div style={{ padding: '12px', borderRadius: '10px', background: isLight ? 'rgba(15, 23, 42, 0.03)' : 'rgba(255, 255, 255, 0.03)', border: isLight ? '1px solid rgba(15, 23, 42, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-            <span style={{ fontSize: '11px', fontWeight: 600, color: isLight ? '#0F172A' : '#F8FAFC' }}>Demand Multiplier</span>
-            <span style={{ fontSize: '12px', fontWeight: 800, color: '#06B6D4', fontFamily: "'JetBrains Mono', monospace" }}>
-              {params.demandChangePct >= 0 ? `+${params.demandChangePct}%` : `${params.demandChangePct}%`}
-            </span>
-          </div>
-          <input
-            type="range"
-            min="-50"
-            max="50"
-            step="5"
-            value={params.demandChangePct}
-            onChange={(e) => setParam('demandChangePct', parseInt(e.target.value))}
-            style={{ width: '100%', accentColor: '#06B6D4', cursor: 'pointer' }}
-          />
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px', color: '#64748B', marginTop: '3px' }}>
-            <span>-50% (Slump)</span>
-            <span>+50% (Viral Surge)</span>
-          </div>
-        </div>
-
-        {/* 2. Supplier Availability */}
-        <div style={{ padding: '12px', borderRadius: '10px', background: isLight ? 'rgba(15, 23, 42, 0.03)' : 'rgba(255, 255, 255, 0.03)', border: isLight ? '1px solid rgba(15, 23, 42, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-            <span style={{ fontSize: '11px', fontWeight: 600, color: isLight ? '#0F172A' : '#F8FAFC' }}>Partner Disruption Flag</span>
-            <Badge variant={params.supplierAvailability === 'all' ? 'emerald' : 'amber'}>
-              {params.supplierAvailability.replace('_', ' ').toUpperCase()}
-            </Badge>
-          </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '20px' }}>
+        
+        {/* Row 1 */}
+        <div>
+          <label style={labelStyle}>Scenario Type</label>
           <select
-            value={params.supplierAvailability}
-            onChange={() => {}}
-            disabled={true}
-            style={{
-              width: '100%',
-              padding: '6px 8px',
-              borderRadius: '6px',
-              background: isLight ? '#FFFFFF' : 'rgba(11, 17, 32, 0.9)',
-              border: isLight ? '1px solid rgba(15, 23, 42, 0.15)' : '1px solid rgba(6, 182, 212, 0.3)',
-              color: '#94A3B8',
-              fontSize: '11px',
-              fontWeight: 600,
-              cursor: 'not-allowed',
+            value={scenarioName}
+            onChange={(e) => {
+              setScenarioName(e.target.value as ScenarioName);
+              if (onInputChange) onInputChange();
             }}
+            style={inputStyle}
+            disabled={isLoading}
           >
-            <option value="all">Backend Pending</option>
+            <option value="supplier_disruption">Supplier Disruption</option>
+            <option value="lead_time_shock">Lead-Time Shock</option>
+            <option value="capacity_reduction">Capacity Reduction</option>
+            <option value="demand_spike">Demand Spike</option>
           </select>
         </div>
 
-        {/* 3. Supplier Capacity */}
-        <div style={{ padding: '12px', borderRadius: '10px', background: isLight ? 'rgba(15, 23, 42, 0.03)' : 'rgba(255, 255, 255, 0.03)', border: isLight ? '1px solid rgba(15, 23, 42, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-            <span style={{ fontSize: '11px', fontWeight: 600, color: isLight ? '#0F172A' : '#F8FAFC' }}>Supplier Capacity Cap</span>
-            <span style={{ fontSize: '12px', fontWeight: 800, color: '#6366F1', fontFamily: "'JetBrains Mono', monospace" }}>
-              {params.supplierCapacityPct}%
-            </span>
-          </div>
+        <div>
+          <label style={labelStyle}>Material ID</label>
           <input
-            type="range"
-            min="50"
-            max="150"
-            step="5"
-            value={params.supplierCapacityPct}
-            onChange={() => {}}
-            disabled={true}
-            style={{ width: '100%', cursor: 'not-allowed' }}
+            type="text"
+            value={materialId}
+            onChange={(e) => {
+              setMaterialId(e.target.value);
+              if (onInputChange) onInputChange();
+            }}
+            style={inputStyle}
+            placeholder="e.g. MAT001"
+            disabled={isLoading}
           />
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px', color: '#64748B', marginTop: '3px' }}>
-            <span>50% (Constrained)</span>
-            <span>150% (Surge Ready)</span>
+        </div>
+
+        {/* Row 2 */}
+        <div>
+          <label style={labelStyle}>Required Quantity</label>
+          <input
+            type="number"
+            value={requiredQuantity}
+            onChange={(e) => {
+              setRequiredQuantity(parseInt(e.target.value));
+              if (onInputChange) onInputChange();
+            }}
+            style={inputStyle}
+            disabled={isLoading}
+          />
+        </div>
+
+        <div>
+          <label style={labelStyle}>Required Date</label>
+          <input
+            type="date"
+            value={requiredDate}
+            onChange={(e) => {
+              setRequiredDate(e.target.value);
+              if (onInputChange) onInputChange();
+            }}
+            style={inputStyle}
+            disabled={isLoading}
+          />
+        </div>
+
+        {/* Row 3 */}
+        <div>
+          <label style={labelStyle}>Plant ID</label>
+          <input
+            type="text"
+            value={plantId}
+            onChange={(e) => {
+              setPlantId(e.target.value);
+              if (onInputChange) onInputChange();
+            }}
+            style={inputStyle}
+            placeholder="e.g. PLANT001"
+            disabled={isLoading}
+          />
+        </div>
+
+        <div>
+          <label style={labelStyle}>Priority</label>
+          <select
+            value={priority}
+            onChange={(e) => {
+              setPriority(e.target.value);
+              if (onInputChange) onInputChange();
+            }}
+            style={inputStyle}
+            disabled={isLoading}
+          >
+            <option value="HIGH">HIGH</option>
+            <option value="MEDIUM">MEDIUM</option>
+            <option value="LOW">LOW</option>
+          </select>
+        </div>
+
+        {/* Row 4 */}
+        <div>
+          <label style={labelStyle}>Target Supplier</label>
+          <input
+            type="text"
+            value={showTargetSupplier ? targetSupplierId : ''}
+            onChange={(e) => {
+              setTargetSupplierId(e.target.value);
+              if (onInputChange) onInputChange();
+            }}
+            style={showTargetSupplier && !isLoading ? inputStyle : disabledInputStyle}
+            placeholder="e.g. SUP001"
+            disabled={isLoading || !showTargetSupplier}
+          />
+        </div>
+
+        <div>
+          <label style={labelStyle}>{magnitudeLabel}</label>
+          <input
+            type="number"
+            step="0.1"
+            value={magnitude}
+            onChange={(e) => {
+              setMagnitude(parseFloat(e.target.value));
+              if (onInputChange) onInputChange();
+            }}
+            style={inputStyle}
+            disabled={isLoading}
+          />
+          <div style={{ fontSize: '10px', color: '#64748B', marginTop: '4px' }}>
+            {magnitudeHelper}
           </div>
         </div>
 
-        {/* 4. Plant Capacity */}
-        <div style={{ padding: '12px', borderRadius: '10px', background: isLight ? 'rgba(15, 23, 42, 0.03)' : 'rgba(255, 255, 255, 0.03)', border: isLight ? '1px solid rgba(15, 23, 42, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-            <span style={{ fontSize: '11px', fontWeight: 600, color: isLight ? '#0F172A' : '#F8FAFC' }}>Manufacturing Plant Capacity</span>
-            <span style={{ fontSize: '12px', fontWeight: 800, color: '#16A34A', fontFamily: "'JetBrains Mono', monospace" }}>
-              {params.plantCapacityPct}%
-            </span>
-          </div>
-          <input
-            type="range"
-            min="50"
-            max="150"
-            step="5"
-            value={params.plantCapacityPct}
-            onChange={() => {}}
-            disabled={true}
-            style={{ width: '100%', cursor: 'not-allowed' }}
-          />
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px', color: '#64748B', marginTop: '3px' }}>
-            <span>70% (Downtime)</span>
-            <span>130% (Overtime Shifts)</span>
-          </div>
-        </div>
+      </div>
 
-        {/* 5. Material Price */}
-        <div style={{ padding: '12px', borderRadius: '10px', background: isLight ? 'rgba(15, 23, 42, 0.03)' : 'rgba(255, 255, 255, 0.03)', border: isLight ? '1px solid rgba(15, 23, 42, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-            <span style={{ fontSize: '11px', fontWeight: 600, color: isLight ? '#0F172A' : '#F8FAFC' }}>Raw Material Price / Tariff</span>
-            <span style={{ fontSize: '12px', fontWeight: 800, color: params.materialPriceChangePct > 0 ? '#F59E0B' : '#16A34A', fontFamily: "'JetBrains Mono', monospace" }}>
-              {params.materialPriceChangePct >= 0 ? `+${params.materialPriceChangePct}%` : `${params.materialPriceChangePct}%`}
-            </span>
-          </div>
-          <input
-            type="range"
-            min="-50"
-            max="100"
-            step="5"
-            value={params.materialPriceChangePct}
-            onChange={() => {}}
-            disabled={true}
-            style={{ width: '100%', cursor: 'not-allowed' }}
-          />
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px', color: '#64748B', marginTop: '3px' }}>
-            <span>-20% (Deflation)</span>
-            <span>+40% (Tariff Shock)</span>
-          </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ color: '#EF4444', fontSize: '13px', fontWeight: 500 }}>
+          {apiError ? 'Scenario run failed. Please check the inputs and try again.' : ''}
         </div>
-
-        {/* 6. Lead Time */}
-        <div style={{ padding: '12px', borderRadius: '10px', background: isLight ? 'rgba(15, 23, 42, 0.03)' : 'rgba(255, 255, 255, 0.03)', border: isLight ? '1px solid rgba(15, 23, 42, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-            <span style={{ fontSize: '11px', fontWeight: 600, color: isLight ? '#0F172A' : '#F8FAFC' }}>Transit Lead Time Variance</span>
-            <span style={{ fontSize: '12px', fontWeight: 800, color: '#38BDF8', fontFamily: "'JetBrains Mono', monospace" }}>
-              {params.leadTimeChangeDays >= 0 ? `+${params.leadTimeChangeDays} days` : `${params.leadTimeChangeDays} days`}
-            </span>
-          </div>
-          <input
-            type="range"
-            min="-10"
-            max="30"
-            step="1"
-            value={params.leadTimeChangeDays}
-            onChange={() => {}}
-            disabled={true}
-            style={{ width: '100%', cursor: 'not-allowed' }}
-          />
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px', color: '#64748B', marginTop: '3px' }}>
-            <span>-5d (Air Freight)</span>
-            <span>+15d (Port Congestion)</span>
-          </div>
-        </div>
+        <GlowButton
+          variant="primary"
+          icon={isLoading ? undefined : <Play size={15} fill="currentColor" />}
+          loading={isLoading}
+          onClick={handleRun}
+          disabled={isLoading || !materialId.trim()}
+        >
+          {isLoading ? 'Running Scenario...' : 'Run Scenario'}
+        </GlowButton>
       </div>
     </CinematicCard>
   );

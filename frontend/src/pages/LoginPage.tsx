@@ -139,7 +139,7 @@ export const LoginPage: React.FC = () => {
                 </span>
               </div>
               <p style={{ fontSize: '12px', color: isLight ? '#047857' : '#86A795', maxWidth: '380px' }}>
-                Integrated S&OP + Procurement Intelligence. Synchronize ML forecasts with mathematical MILP optimization.
+                Integrated S&OP + Procurement Intelligence. Synchronize forecasts with strategic procurement allocation.
               </p>
             </div>
 

@@ -7,11 +7,12 @@ export interface RiskPredictionRequest {
 
 export interface RiskPredictionResponse {
   supplier_id: string;
-  material_id: string;
-  delay_probability: number;
-  predicted_delay_days: number;
-  risk_level: string;
   risk_score: number;
+  risk_level: string;
+  delivery_risk: number;
+  quality_risk: number;
+  prediction_date: string;
+  model_version: string;
 }
 
 export const predictRisk = async (request: RiskPredictionRequest): Promise<RiskPredictionResponse> => {

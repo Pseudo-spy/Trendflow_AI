@@ -1,21 +1,19 @@
 import React, { useState } from 'react';
-import { Bell, Play, Menu } from 'lucide-react';
+import { Play, Menu } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme';
 import { GlowButton } from '../ui/GlowButton';
-import { ThemeToggle } from '../ui/ThemeToggle';
 import { SearchBar } from '../ui/SearchBar';
-import { PlanningPeriodBadge } from '../ui/PlanningPeriodBadge';
-import { UserProfileBadge } from '../ui/UserProfileBadge';
 import { QuickPlanningModal } from './QuickPlanningModal';
+import { type MaterialRequirementContract } from '../../services/api/sopApi';
 
 interface HeaderProps {
   onMenuClick?: () => void;
   isTablet?: boolean;
+  onSopPlanningComplete?: (result: MaterialRequirementContract) => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onMenuClick, isTablet }) => {
+export const Header: React.FC<HeaderProps> = ({ onMenuClick, isTablet, onSopPlanningComplete }) => {
   const [isPlanningModalOpen, setIsPlanningModalOpen] = useState(false);
-  const [hasUnreadAlerts, setHasUnreadAlerts] = useState(true);
   const { mode } = useTheme();
   const isLight = mode === 'light';
 
@@ -37,7 +35,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick, isTablet }) => {
           boxSizing: 'border-box',
         }}
       >
-        {/* Left Section: Planning Period & Global Search */}
+        {/* Left Section: Global Search */}
         <div
           style={{
             display: 'flex',
@@ -54,7 +52,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick, isTablet }) => {
               style={{
                 background: 'none',
                 border: 'none',
-                color: '#fff',
+                color: isLight ? '#000' : '#fff',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
@@ -65,15 +63,12 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick, isTablet }) => {
               <Menu size={24} />
             </button>
           )}
-          <div style={{ flexShrink: 0 }}>
-            <PlanningPeriodBadge />
-          </div>
-          <div className="hide-mobile" style={{ flex: '1 1 auto', maxWidth: '280px', minWidth: '140px' }}>
+          <div className="hide-mobile" style={{ flex: '1 1 auto', maxWidth: '400px', minWidth: '140px' }}>
             <SearchBar />
           </div>
         </div>
 
-        {/* Right Section: Notifications, Theme Switcher, User Profile & RUN PLANNING CTA */}
+        {/* Right Section: Primary CTA: RUN PLANNING */}
         <div
           style={{
             display: 'flex',
@@ -82,54 +77,6 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick, isTablet }) => {
             flexShrink: 0,
           }}
         >
-          {/* Theme Switcher (Animated Moon ↔ Sun) */}
-          <div style={{ flexShrink: 0 }}>
-            <ThemeToggle />
-          </div>
-
-          {/* Notifications Bell */}
-          <button
-            onClick={() => setHasUnreadAlerts(false)}
-            title="System & Risk Notifications"
-            style={{
-              position: 'relative',
-              width: '34px',
-              height: '34px',
-              borderRadius: '9px',
-              background: isLight ? 'rgba(15, 23, 42, 0.04)' : 'rgba(255, 255, 255, 0.05)',
-              border: isLight ? '1px solid rgba(15, 23, 42, 0.1)' : '1px solid rgba(255, 255, 255, 0.1)',
-              color: isLight ? '#475569' : '#94A3B8',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'all 0.2s ease',
-              flexShrink: 0,
-            }}
-          >
-            <Bell size={15} />
-            {hasUnreadAlerts && (
-              <span
-                style={{
-                  position: 'absolute',
-                  top: '6px',
-                  right: '6px',
-                  width: '7px',
-                  height: '7px',
-                  borderRadius: '50%',
-                  backgroundColor: '#F43F5E',
-                  boxShadow: '0 0 8px #F43F5E',
-                }}
-              />
-            )}
-          </button>
-
-          {/* User Profile Badge */}
-          <div style={{ flexShrink: 0 }}>
-            <UserProfileBadge />
-          </div>
-
-          {/* Primary CTA: RUN PLANNING */}
           <div style={{ flexShrink: 0 }}>
             <GlowButton
               variant="primary"
@@ -160,9 +107,15 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick, isTablet }) => {
       <QuickPlanningModal
         isOpen={isPlanningModalOpen}
         onClose={() => setIsPlanningModalOpen(false)}
+        onPlanningComplete={(result) => {
+          if (onSopPlanningComplete) {
+            onSopPlanningComplete(result);
+          }
+        }}
       />
     </>
   );
 };
 
 export default Header;
+

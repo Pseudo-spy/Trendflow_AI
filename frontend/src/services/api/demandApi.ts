@@ -1,13 +1,13 @@
 import { apiClient } from './client';
 
 export interface DemandHistoryItem {
-  id: number;
+  id?: number;
   sku: string;
   demand_date: string;
   quantity_sold: number;
-  promotion: boolean;
-  markdown_percentage: number;
-  sell_through_rate: number;
+  promotion?: boolean;
+  markdown_percentage?: number;
+  sell_through_rate?: number | null;
 }
 
 export interface DemandHistoryResponse {
@@ -17,12 +17,12 @@ export interface DemandHistoryResponse {
 }
 
 export interface DemandForecastItem {
-  id: number;
+  id?: number;
   sku: string;
   forecast_date: string;
   forecast_quantity: number;
-  confidence: number;
-  model_version: string;
+  confidence?: number | null;
+  model_version?: string;
 }
 
 export interface DemandForecastResponse {

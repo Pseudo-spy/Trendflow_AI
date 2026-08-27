@@ -15,7 +15,8 @@ import { useMediaQuery } from '../../hooks/useMediaQuery';
 
 export const ControlTowerHero: React.FC = () => {
   const [selectedNode, setSelectedNode] = useState<SupplyChainNodeData | null>(controlTowerNodes[0]);
-  const { mode, cameraParallax, setCameraParallax } = useTheme();
+  const [cameraParallax, setCameraParallax] = useState(true);
+  const { mode } = useTheme();
   const isLight = mode === 'light';
   const isMobile = useMediaQuery('(max-width: 768px)');
 
@@ -152,14 +153,14 @@ export const ControlTowerHero: React.FC = () => {
               }}
             />
             <span style={{ fontSize: '10px', fontWeight: 600, color: isLight ? '#064E3B' : '#F0FDF4' }}>
-              Click any 3D node to inspect telemetry & related photon trajectories
+              Click a node to view details
             </span>
           </div>
 
           <SceneCanvas
             enableOrbit={true}
             enableParallax={cameraParallax}
-            cameraPosition={[0, 6, 18]}
+            cameraPosition={[0, 7.5, 24]}
             fov={44}
           >
             <React.Suspense fallback={null}>

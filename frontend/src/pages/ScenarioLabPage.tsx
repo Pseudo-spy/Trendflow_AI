@@ -3,15 +3,10 @@ import { PageTransitionLayout } from '../layouts/PageTransitionLayout';
 import { PageHeader } from '../components/ui/PageHeader';
 import { ScenarioHero } from '../components/scenarios/ScenarioHero';
 import { ScenarioControls } from '../components/scenarios/ScenarioControls';
-import { ScenarioResultsComparison } from '../components/scenarios/ScenarioResultsComparison';
-import { ScenarioAllocationShift } from '../components/scenarios/ScenarioAllocationShift';
+import { ScenarioAllocationImpact } from '../components/scenarios/ScenarioAllocationImpact';
 import type { ScenarioParameters } from '../types/scenario';
-import { runScenarioEngine, type ScenarioRunResponse } from '../services/api/scenarioApi';
-import { ErrorState } from '../components/ui/States';
-
-
-
-
+import { useOutletContext } from 'react-router-dom';
+import { runScenarioEngine, type ScenarioRunResponse, type ScenarioRunRequest } from '../services/api/scenarioApi';
 
 const defaultParams: ScenarioParameters = {
   demandChangePct: 20,
@@ -23,23 +18,25 @@ const defaultParams: ScenarioParameters = {
 };
 
 export const ScenarioLabPage: React.FC = () => {
-  const [params, setParams] = useState<ScenarioParameters>(defaultParams);
+  const context = useOutletContext<any>();
+  const setLatestScenarioResult = context?.setLatestScenarioResult;
+
+  // Visual-only state for protected ScenarioHero
+  const [visualParams, setVisualParams] = useState<ScenarioParameters>(defaultParams);
+  
   const [isSimulating, setIsSimulating] = useState<boolean>(false);
   const [apiResponse, setApiResponse] = useState<ScenarioRunResponse | null>(null);
+  const [lastRequest, setLastRequest] = useState<ScenarioRunRequest | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
 
-
-
-  const handleRunSimulation = async () => {
+  const handleRunSimulation = async (request: ScenarioRunRequest) => {
     setIsSimulating(true);
     setApiError(null);
+    setLastRequest(request);
     try {
-      const res = await runScenarioEngine({
-        scenario_name: 'Custom User Scenario',
-        material_id: 'MAT001',
-        quantity_modifier: 1 + params.demandChangePct / 100
-      });
+      const res = await runScenarioEngine(request);
       setApiResponse(res);
+      if (setLatestScenarioResult) setLatestScenarioResult(res);
     } catch (err: any) {
       setApiError(err.message || 'Simulation failed');
     } finally {
@@ -48,52 +45,47 @@ export const ScenarioLabPage: React.FC = () => {
   };
 
   const handleResetDefaults = () => {
-    setParams(defaultParams);
+    setVisualParams(defaultParams);
   };
 
   return (
     <PageTransitionLayout>
       <PageHeader
-        title="What-If Planning Lab & Scenario Sandbox"
-        subtitle="Stress-test supply chain resilience against demand shocks, supplier outages, tariff spikes, and logistics bottlenecks"
-        badgeText="Monte Carlo Simulation • Real-Time"
+        title="What-If Scenario Analysis"
+        subtitle="Compare baseline procurement performance with supported supply-chain disruption scenarios."
+        badgeText="Scenario Engine"
         badgeVariant="cyan"
       />
 
-      {/* 3D Real-Time Spatial Simulation Canvas */}
+      {/* PROTECTED 3D Real-Time Spatial Simulation Canvas */}
       <ScenarioHero
-        params={params}
+        params={visualParams}
         isSimulating={isSimulating}
-        onRunSimulation={handleRunSimulation}
+        onRunSimulation={() => {}} // Disabled run from here to enforce single API call via controls
         onResetDefaults={handleResetDefaults}
       />
 
-      {/* 6 Stress-Test Controls & One-Click Presets */}
+      {/* Backend-driven Scenario Controls */}
       <div style={{ marginBottom: '24px' }}>
         <ScenarioControls
-          params={params}
-          onChangeParams={(newP) => {
-            setParams(newP);
-            handleRunSimulation();
-          }}
+          onRunSimulation={handleRunSimulation}
+          isLoading={isSimulating}
+          onInputChange={() => setApiResponse(null)}
+          apiError={apiError}
         />
       </div>
 
-      {/* Baseline vs Scenario Results Comparison */}
-      <div style={{ marginBottom: '24px' }}>
-        {apiError && <ErrorState error={apiError} onRetry={handleRunSimulation} />}
-        {!apiError && (
-          <ScenarioResultsComparison
+      {/* Supplier Allocation Impact Comparison */}
+      {apiResponse && (
+        <div>
+          <ScenarioAllocationImpact 
+            apiResponse={apiResponse} 
+            lastRequest={lastRequest}
             isSimulating={isSimulating}
-            apiResponse={apiResponse}
+            apiError={apiError}
           />
-        )}
-      </div>
-
-      {/* Supplier Allocation Shift Comparison */}
-      <div>
-        <ScenarioAllocationShift />
-      </div>
+        </div>
+      )}
     </PageTransitionLayout>
   );
 };
