@@ -210,10 +210,11 @@ export const ProcurementInputForm: React.FC<ProcurementInputFormProps> = ({
         </div>
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px' }}>
         <GlowButton
           variant="primary"
-          icon={isLoading ? undefined : <Play size={15} fill="currentColor" />}
+          size="lg"
+          icon={isLoading ? undefined : <Play size={20} fill="currentColor" />}
           loading={isLoading}
           onClick={handleRun}
           disabled={isLoading}

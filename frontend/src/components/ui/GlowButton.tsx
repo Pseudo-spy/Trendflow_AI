@@ -64,9 +64,9 @@ const variantStyles: Record<ButtonVariant, { base: string; glow: string; style: 
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
-  sm: 'px-3 py-1.5 text-xs rounded-lg gap-1.5',
-  md: 'px-4 py-2 text-sm rounded-xl gap-2',
-  lg: 'px-6 py-3 text-base rounded-xl gap-2.5',
+  sm: 'px-5 py-2.5 text-xs gap-2',
+  md: 'px-6 py-3.5 text-sm gap-2.5',
+  lg: 'px-[28px] py-[14px] text-[16px] gap-[10px] min-w-[220px] font-semibold',
 };
 
 export const GlowButton: React.FC<GlowButtonProps> = ({
@@ -116,6 +116,15 @@ export const GlowButton: React.FC<GlowButtonProps> = ({
         background: activeBg,
         border: activeBorder,
         boxShadow: activeShadow,
+        borderRadius: '12px',
+        ...(size === 'lg' ? {
+          minHeight: '52px',
+          minWidth: '220px',
+          padding: '14px 28px',
+          fontSize: '16px',
+          fontWeight: 700,
+          gap: '12px',
+        } : {}),
         ...style,
       }}
       disabled={disabled || loading}

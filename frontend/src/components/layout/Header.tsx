@@ -80,21 +80,14 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick, isTablet, onSopPlan
           <div style={{ flexShrink: 0 }}>
             <GlowButton
               variant="primary"
-              size="md"
-              icon={<Play size={13} fill="currentColor" />}
+              size="lg"
+              icon={<Play size={20} fill="currentColor" />}
               glow
               onClick={() => setIsPlanningModalOpen(true)}
               style={{
                 fontWeight: 800,
                 letterSpacing: '0.04em',
                 textTransform: 'uppercase',
-                fontSize: '11px',
-                padding: '0 14px',
-                height: '36px',
-                whiteSpace: 'nowrap',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
               }}
             >
               RUN PLANNING

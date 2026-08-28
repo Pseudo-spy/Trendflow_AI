@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useRef } from 'react';
+import { useFrame } from '@react-three/fiber';
+import * as THREE from 'three';
 import {
   FloatingObject,
   HoverableObject,
@@ -27,6 +29,50 @@ export const ControlTowerHero3D: React.FC<ControlTowerHero3DProps> = ({
   const isLight = mode === 'light';
   const activeNodeId = hoveredNode?.id || selectedNode?.id;
 
+  const nodeRefs = useRef<Record<string, React.MutableRefObject<THREE.Group | null>>>({});
+  if (Object.keys(nodeRefs.current).length === 0) {
+    controlTowerNodes.forEach(node => {
+      nodeRefs.current[node.id] = { current: null };
+    });
+  }
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+    controlTowerNodes.forEach((node, i) => {
+      const ref = nodeRefs.current[node.id];
+      if (ref && ref.current) {
+        // Highly obvious single elliptical orbit for all 9 nodes to avoid overlapping
+        const speed = 0.10;
+        const radiusX = 10.0;
+        const radiusZ = 3.5;
+
+        const totalNodes = controlTowerNodes.length; // 9
+        const baseAngle = (i / totalNodes) * Math.PI * 2;
+        const angle = baseAngle + t * speed;
+
+        // Base planar elliptical position
+        const x = Math.cos(angle) * radiusX;
+        const z = Math.sin(angle) * radiusZ;
+
+        // Tilt the orbit plane dramatically on the Z axis and add a small sine wave for visual interest
+        const yTilt = z * 0.35; // Nodes further back go much lower, front go much higher
+        const yWave = Math.sin(angle * 4) * 0.25;
+        const targetY = yTilt + yWave;
+
+        ref.current.position.set(x, targetY, z);
+
+        // Depth-based scaling: node gets larger as it moves closer to the camera (+Z)
+        const normalizedZ = (z + radiusZ) / (2 * radiusZ);
+        const minScale = 0.90;
+        const maxScale = 1.20;
+        const targetScale = THREE.MathUtils.lerp(minScale, maxScale, normalizedZ);
+
+        // Smoothly interpolate the scale
+        ref.current.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.1);
+      }
+    });
+  });
+
   return (
     <>
       {/* 3D Grid Floor */}
@@ -35,8 +81,8 @@ export const ControlTowerHero3D: React.FC<ControlTowerHero3DProps> = ({
       {/* Very sparse ambient particles */}
       <DataParticle count={30} radius={22} speed={0.03} />
 
-      {/* Central Core — minimal motion, no orbiting satellites, no pulse */}
-      <FloatingObject position={[0, 0.4, 0]} speed={0.4} floatIntensity={0.04} rotationSpeed={0.02}>
+      {/* Central Core — elevated above the operational network */}
+      <FloatingObject position={[0, 4.5, 0]} speed={0.8} floatIntensity={0.12} rotationSpeed={0.02}>
         <HoverableObject
           hoverScale={1.08}
           tooltipText="TRENDFLOW AI COMMAND CORE"
@@ -143,25 +189,31 @@ export const ControlTowerHero3D: React.FC<ControlTowerHero3DProps> = ({
         color="#EF4444" // Risk Red
       />
 
-      {/* Render all 9 Pipeline Nodes — minimal float */}
+      {/* Render all 9 Pipeline Nodes — with orbiting positions */}
       {controlTowerNodes.map((node) => {
         const isSelected = selectedNode?.id === node.id;
         const isHovered = hoveredNode?.id === node.id;
 
+        // Ensure the inner glowing node is zeroed out, so our animated wrapper controls absolute world position
+        const centeredNode = { ...node, position: [0, 0, 0] as [number, number, number] };
+
         return (
-          <FloatingObject
-            key={node.id}
-            position={[0, 0, 0]}
-            speed={0.4}
-            floatIntensity={0.03}
-            rotationSpeed={0.02}
-          >
-            <GlowingNode
-              node={node}
-              isSelected={isSelected || isHovered}
-              onSelect={(n) => onSelectNode(n)}
-            />
-          </FloatingObject>
+          <group key={node.id} ref={nodeRefs.current[node.id]} position={node.position}>
+            <FloatingObject
+              position={[0, 0, 0]}
+              speed={0.4}
+              floatIntensity={0.03}
+              rotationSpeed={0.02}
+            >
+              <group scale={1.10}>
+                <GlowingNode
+                  node={centeredNode}
+                  isSelected={isSelected || isHovered}
+                  onSelect={() => onSelectNode(node)}
+                />
+              </group>
+            </FloatingObject>
+          </group>
         );
       })}
     </>

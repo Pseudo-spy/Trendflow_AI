@@ -72,7 +72,7 @@ export const ControlTowerHero: React.FC = () => {
                 SIMULATION VIEW
               </Badge>
             </div>
-            
+
             <p style={{ fontSize: '11px', color: isLight ? '#15803D' : '#86A795' }}>
               Interactive 3D network with OR-Tools solver mapping & dynamic photon streams representing material flows.
             </p>
@@ -253,27 +253,60 @@ export const ControlTowerHero: React.FC = () => {
                 <span style={{ color: isLight ? '#047857' : '#86A795' }}>Solver State</span>
                 <span style={{ fontWeight: 700, color: '#16A34A' }}>Synchronized</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
-                <span style={{ color: isLight ? '#047857' : '#86A795' }}>Latency</span>
-                <span style={{ fontWeight: 700, color: isLight ? '#064E3B' : '#F0FDF4', fontFamily: "'JetBrains Mono', monospace" }}>
-                  14ms
-                </span>
-              </div>
             </div>
           </div>
 
           <div style={{ marginTop: '16px' }}>
             <GlowButton
               variant="primary"
-              size="sm"
-              icon={<Sparkles size={14} />}
-              style={{ width: '100%', fontWeight: 700 }}
-              disabled={true}
+              size="lg"
+              icon={<Sparkles size={20} />}
+              style={{
+                width: '100%',
+                fontWeight: 700,
+              }}
             >
-              Analyze {activeNode.name} (Pending)
+              Analyze {activeNode.name}
             </GlowButton>
           </div>
         </div>
+      </div>
+
+      {/* Node Selector Ribbon */}
+      <div style={{ display: 'flex', gap: '8px', marginTop: '16px', overflowX: 'auto', paddingBottom: '4px' }}>
+        {controlTowerNodes.map((node, index) => {
+          const isSelected = activeNode.id === node.id;
+          return (
+            <button
+              key={node.id}
+              onClick={() => setSelectedNode(node)}
+              style={{
+                padding: '6px 12px',
+                borderRadius: '8px',
+                background: isSelected
+                  ? isLight
+                    ? 'rgba(16, 185, 129, 0.15)'
+                    : 'rgba(16, 185, 129, 0.2)'
+                  : isLight
+                  ? 'rgba(15, 23, 42, 0.04)'
+                  : 'rgba(255, 255, 255, 0.04)',
+                border: isSelected
+                  ? '1px solid #16A34A'
+                  : isLight
+                  ? '1px solid rgba(15, 23, 42, 0.08)'
+                  : '1px solid rgba(255, 255, 255, 0.08)',
+                color: isSelected ? (isLight ? '#15803D' : '#34D399') : (isLight ? '#475569' : '#94A3B8'),
+                fontSize: '11px',
+                fontWeight: isSelected ? 700 : 500,
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              {index + 1}. {node.name.replace(/^\d+\.\s*/, '')}
+            </button>
+          );
+        })}
       </div>
     </div>
   );

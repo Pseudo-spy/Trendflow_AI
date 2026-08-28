@@ -19,7 +19,7 @@ export const LandingPage: React.FC = () => {
   return (
     <PageTransitionLayout>
       {/* Top Landing Navigation Bar */}
-      <div style={{ margin: '-24px -28px 24px -28px' }}>
+      <div style={{ marginBottom: '24px' }}>
         <LandingHeader onRequestAccess={() => setIsRequestModalOpen(true)} />
       </div>
 

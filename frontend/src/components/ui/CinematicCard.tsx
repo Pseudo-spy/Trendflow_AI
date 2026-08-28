@@ -44,12 +44,13 @@ export const CinematicCard: React.FC<CinematicCardProps> = ({
         <div
           style={{
             display: 'flex',
-            alignItems: 'center',
+            alignItems: 'flex-start',
             justifyContent: 'space-between',
             marginBottom: '16px',
+            gap: '16px',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
             {icon && (
               <div
                 style={{
@@ -92,7 +93,7 @@ export const CinematicCard: React.FC<CinematicCardProps> = ({
               )}
             </div>
           </div>
-          {headerAction && <div>{headerAction}</div>}
+          {headerAction && <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>{headerAction}</div>}
         </div>
       )}
 

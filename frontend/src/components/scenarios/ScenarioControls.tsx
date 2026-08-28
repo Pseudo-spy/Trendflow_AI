@@ -242,13 +242,14 @@ export const ScenarioControls: React.FC<ScenarioControlsProps> = ({
 
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px' }}>
         <div style={{ color: '#EF4444', fontSize: '13px', fontWeight: 500 }}>
           {apiError ? 'Scenario run failed. Please check the inputs and try again.' : ''}
         </div>
         <GlowButton
           variant="primary"
-          icon={isLoading ? undefined : <Play size={15} fill="currentColor" />}
+          size="lg"
+          icon={isLoading ? undefined : <Play size={20} fill="currentColor" />}
           loading={isLoading}
           onClick={handleRun}
           disabled={isLoading || !materialId.trim()}

@@ -9,6 +9,7 @@ interface BadgeProps {
   variant?: BadgeVariant;
   pulse?: boolean;
   className?: string;
+  style?: React.CSSProperties;
   icon?: ReactNode;
 }
 
@@ -59,6 +60,7 @@ export const Badge: React.FC<BadgeProps> = ({
   variant = 'cyan',
   pulse = false,
   className,
+  style,
   icon,
 }) => {
   const { mode } = useTheme();
@@ -68,11 +70,19 @@ export const Badge: React.FC<BadgeProps> = ({
 
   return (
     <span
-      className={cn('inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wide', className)}
+      className={cn('inline-flex items-center gap-1.5 text-[11px] font-bold tracking-wide', className)}
       style={{
         backgroundColor: styles.bg,
         color: styles.text,
         border: `1px solid ${styles.border}`,
+        borderRadius: '8px',
+        padding: '4px 10px',
+        width: 'fit-content',
+        justifyContent: 'center',
+        alignItems: 'center',
+        lineHeight: '1.2',
+        whiteSpace: 'nowrap',
+        ...style,
       }}
     >
       {pulse ? (
