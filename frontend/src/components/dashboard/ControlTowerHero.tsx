@@ -260,7 +260,7 @@ export const ControlTowerHero: React.FC = () => {
             <GlowButton
               variant="primary"
               size="lg"
-              icon={<Sparkles size={20} />}
+              icon={<Sparkles size={18} />}
               style={{
                 width: '100%',
                 fontWeight: 700,

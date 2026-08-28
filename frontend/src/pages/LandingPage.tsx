@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { PageTransitionLayout } from '../layouts/PageTransitionLayout';
 import { LandingHeader } from '../components/layout/LandingHeader';
 import { HeroSection } from '../components/landing/HeroSection';
@@ -11,16 +11,14 @@ import { WhyUsSection } from '../components/landing/WhyUsSection';
 import { ScenarioTeaser } from '../components/landing/ScenarioTeaser';
 import { FinalCtaSection } from '../components/landing/FinalCtaSection';
 import { LandingFooter } from '../components/landing/LandingFooter';
-import { RequestAccessModal } from '../components/landing/RequestAccessModal';
+
 
 export const LandingPage: React.FC = () => {
-  const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
-
   return (
     <PageTransitionLayout>
       {/* Top Landing Navigation Bar */}
       <div style={{ marginBottom: '24px' }}>
-        <LandingHeader onRequestAccess={() => setIsRequestModalOpen(true)} />
+        <LandingHeader />
       </div>
 
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 24px' }}>
@@ -61,11 +59,7 @@ export const LandingPage: React.FC = () => {
       {/* 10. Enterprise Footer */}
       <LandingFooter />
 
-      {/* Request Access Pilot Modal */}
-      <RequestAccessModal
-        isOpen={isRequestModalOpen}
-        onClose={() => setIsRequestModalOpen(false)}
-      />
+
     </PageTransitionLayout>
   );
 };

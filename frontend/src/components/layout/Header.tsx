@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Play, Menu } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme';
 import { GlowButton } from '../ui/GlowButton';
-import { SearchBar } from '../ui/SearchBar';
+
 import { QuickPlanningModal } from './QuickPlanningModal';
 import { type MaterialRequirementContract } from '../../services/api/sopApi';
 
@@ -63,9 +63,6 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick, isTablet, onSopPlan
               <Menu size={24} />
             </button>
           )}
-          <div className="hide-mobile" style={{ flex: '1 1 auto', maxWidth: '400px', minWidth: '140px' }}>
-            <SearchBar />
-          </div>
         </div>
 
         {/* Right Section: Primary CTA: RUN PLANNING */}
@@ -81,7 +78,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick, isTablet, onSopPlan
             <GlowButton
               variant="primary"
               size="lg"
-              icon={<Play size={20} fill="currentColor" />}
+              icon={<Play size={18} fill="currentColor" />}
               glow
               onClick={() => setIsPlanningModalOpen(true)}
               style={{

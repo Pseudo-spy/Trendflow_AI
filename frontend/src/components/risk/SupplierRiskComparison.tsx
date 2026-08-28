@@ -81,7 +81,7 @@ export const SupplierRiskComparison: React.FC<SupplierRiskComparisonProps> = ({ 
           <p style={{ fontSize: '12px' }}>Run Analyze Risk for one or more suppliers to build the comparison.</p>
         </div>
       ) : (
-        <div style={{ position: 'relative' }}>
+        <div style={{ position: 'relative', paddingRight: '16px', paddingBottom: '24px' }}>
           {/* Compact Legend */}
           <div style={{ display: 'flex', gap: '16px', marginBottom: '20px', flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -123,7 +123,7 @@ export const SupplierRiskComparison: React.FC<SupplierRiskComparisonProps> = ({ 
                     
                     {/* Overall Risk Bar */}
                     <div 
-                      style={{ position: 'relative', display: 'flex', alignItems: 'center', height: '16px' }}
+                      style={{ position: 'relative', display: 'flex', alignItems: 'center', height: '16px', gap: '12px' }}
                       onMouseEnter={(e) => handleMouseEnter(e, item, 'Overall Risk', item.risk_score, formatPercentage(item.risk_score))}
                       onMouseLeave={handleMouseLeave}
                     >
@@ -138,7 +138,7 @@ export const SupplierRiskComparison: React.FC<SupplierRiskComparisonProps> = ({ 
 
                     {/* Delivery Risk Bar */}
                     <div 
-                      style={{ position: 'relative', display: 'flex', alignItems: 'center', height: '16px' }}
+                      style={{ position: 'relative', display: 'flex', alignItems: 'center', height: '16px', gap: '12px' }}
                       onMouseEnter={(e) => handleMouseEnter(e, item, 'Delivery Risk', item.delivery_risk, formatPercentage(item.delivery_risk))}
                       onMouseLeave={handleMouseLeave}
                     >
@@ -153,7 +153,7 @@ export const SupplierRiskComparison: React.FC<SupplierRiskComparisonProps> = ({ 
 
                     {/* Quality Risk Bar */}
                     <div 
-                      style={{ position: 'relative', display: 'flex', alignItems: 'center', height: '16px' }}
+                      style={{ position: 'relative', display: 'flex', alignItems: 'center', height: '16px', gap: '12px' }}
                       onMouseEnter={(e) => handleMouseEnter(e, item, 'Quality Risk', item.quality_risk, formatPercentage(item.quality_risk))}
                       onMouseLeave={handleMouseLeave}
                     >

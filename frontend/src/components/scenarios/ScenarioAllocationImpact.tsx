@@ -372,10 +372,9 @@ export const ScenarioAllocationImpact: React.FC<ScenarioAllocationImpactProps> =
           <h4 style={{ margin: '0 0 16px 0', fontSize: '13px', color: mutedTextColor, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
             Scenario Explanation
           </h4>
-          <div style={{ fontSize: '11px', color: mutedTextColor, marginBottom: '8px' }}>Backend Explanation</div>
           <div style={{ 
             fontSize: '13px', 
-            color: isLight ? '#334155' : '#CBD5E1', 
+            color: isLight ? '#15803D' : '#4ADE80', 
             lineHeight: 1.6,
             padding: '16px',
             background: isLight ? '#FFFFFF' : 'rgba(15, 23, 42, 0.4)',

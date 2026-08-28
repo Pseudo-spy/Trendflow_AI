@@ -11,7 +11,6 @@ import {
   ShieldAlert,
   GitFork,
   Layers,
-  Compass,
   LogOut,
 } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme';
@@ -33,7 +32,6 @@ const navItems: NavItem[] = [
   { name: 'Suppliers', path: '/suppliers', icon: <Truck size={18} /> },
   { name: 'Risk Analysis', path: '/risk', icon: <ShieldAlert size={18} />, badge: 'Radar' },
   { name: 'Scenarios', path: '/scenarios', icon: <GitFork size={18} /> },
-  { name: 'Platform Overview', path: '/home', icon: <Compass size={18} /> },
 ];
 
 const SidebarItem: React.FC<{ item: NavItem; isLight: boolean; onClick?: () => void }> = ({ item, isLight, onClick }) => {

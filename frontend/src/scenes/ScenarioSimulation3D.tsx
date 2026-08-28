@@ -127,7 +127,7 @@ export const ScenarioSimulation3D: React.FC<ScenarioSimulation3DProps> = ({
   ];
 
   return (
-    <>
+    <group position={[0, -0.8, 0]}>
       {/* Dynamic 3D Floor Grid */}
       <HologramGrid size={38} divisions={38} />
 
@@ -215,6 +215,6 @@ export const ScenarioSimulation3D: React.FC<ScenarioSimulation3DProps> = ({
           </FloatingObject>
         );
       })}
-    </>
+    </group>
   );
 };

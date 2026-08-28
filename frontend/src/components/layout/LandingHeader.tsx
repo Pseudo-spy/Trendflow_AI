@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Layers, LogIn, Sparkles, Menu } from 'lucide-react';
+import { Layers, LogIn, Menu } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme';
 import { GlowButton } from '../ui/GlowButton';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
@@ -47,11 +47,7 @@ const RouterHeaderLink: React.FC<{ to: string; children: React.ReactNode; isLigh
   );
 };
 
-interface LandingHeaderProps {
-  onRequestAccess: () => void;
-}
-
-export const LandingHeader: React.FC<LandingHeaderProps> = ({ onRequestAccess }) => {
+export const LandingHeader: React.FC = () => {
   const { mode } = useTheme();
   const isLight = mode === 'light';
   const isTablet = useMediaQuery('(max-width: 1024px)');
@@ -150,28 +146,6 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({ onRequestAccess })
             <Menu size={24} />
           </button>
         )}
-
-        {/* Request Access Button */}
-        <button
-          onClick={onRequestAccess}
-          style={{
-            padding: '7px 14px',
-            borderRadius: '9px',
-            background: isLight ? 'rgba(15, 23, 42, 0.05)' : 'rgba(255, 255, 255, 0.05)',
-            border: isLight ? '1px solid rgba(15, 23, 42, 0.12)' : '1px solid rgba(255, 255, 255, 0.12)',
-            color: isLight ? '#0F172A' : '#F8FAFC',
-            fontSize: '12px',
-            fontWeight: 700,
-            cursor: 'pointer',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          <Sparkles size={13} color="#16A34A" />
-          <span>Request Access</span>
-        </button>
 
         {/* Login Button */}
         <NavLink to="/login" style={{ textDecoration: 'none' }}>

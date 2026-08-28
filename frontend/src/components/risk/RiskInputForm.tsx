@@ -125,7 +125,7 @@ export const RiskInputForm: React.FC<RiskInputFormProps> = ({
         <GlowButton
           variant="primary"
           size="lg"
-          icon={isLoading ? undefined : <Play size={20} fill="currentColor" />}
+          icon={isLoading ? undefined : <Play size={18} fill="currentColor" />}
           loading={isLoading}
           onClick={handleRun}
           disabled={isLoading}

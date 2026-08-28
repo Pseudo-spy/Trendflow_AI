@@ -83,9 +83,14 @@ export const GlowingNode: React.FC<GlowingNodeProps> = ({
     }
   });
 
-  const shortName = node.name.replace(/^\d+\.\s*/, '').replace('Material Requirement', 'Materials');
+  const shortName = node.name
+    .replace(/^\d+\.\s*/, '')
+    .replace(/\s*\(.*\)$/, '')
+    .replace('Material Requirement', 'Materials')
+    .replace('Forecast Model', 'Forecast')
+    .replace('Procurement Solver', 'Procurement');
   
-  const defaultLabelPos: [number, number, number] = [0, 1.1, 0];
+  const defaultLabelPos: [number, number, number] = [0, 1.4, 0];
   const labelPos: [number, number, number] = node.labelOffset 
     ? [defaultLabelPos[0] + node.labelOffset[0], defaultLabelPos[1] + node.labelOffset[1], defaultLabelPos[2] + node.labelOffset[2]]
     : defaultLabelPos;
@@ -150,19 +155,19 @@ export const GlowingNode: React.FC<GlowingNodeProps> = ({
       >
         <div
           style={{
-            background: isLight ? 'rgba(255, 255, 255, 0.95)' : 'rgba(9, 13, 11, 0.85)',
-            backdropFilter: 'blur(8px)',
+            background: isLight ? 'rgba(255, 255, 255, 0.85)' : 'rgba(9, 13, 11, 0.65)',
+            backdropFilter: 'blur(4px)',
             border: `1px solid ${hovered || isSelected ? colors.primary : 'rgba(255, 255, 255, 0.1)'}`,
-            borderRadius: '8px',
-            padding: '6px 14px',
+            borderRadius: '6px',
+            padding: '4px 10px',
             whiteSpace: 'nowrap',
-            fontSize: '12px',
-            fontWeight: 700,
+            fontSize: '11px',
+            fontWeight: 600,
             color: isLight ? '#0F172A' : '#F8FAFC',
-            boxShadow: hovered || isSelected ? `0 4px 16px ${colors.glow}, 0 0 0 1px ${colors.primary} inset` : '0 4px 12px rgba(0,0,0,0.4)',
+            boxShadow: hovered || isSelected ? `0 4px 16px ${colors.glow}, 0 0 0 1px ${colors.primary} inset` : '0 2px 8px rgba(0,0,0,0.3)',
             display: 'flex',
             alignItems: 'center',
-            gap: '8px',
+            gap: '6px',
             transform: hovered || isSelected ? 'scale(1.05) translateY(-2px)' : 'scale(1) translateY(0)',
             transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           }}

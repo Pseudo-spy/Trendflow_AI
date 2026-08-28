@@ -118,12 +118,12 @@ export const GlowButton: React.FC<GlowButtonProps> = ({
         boxShadow: activeShadow,
         borderRadius: '12px',
         ...(size === 'lg' ? {
-          minHeight: '52px',
-          minWidth: '220px',
-          padding: '14px 28px',
-          fontSize: '16px',
-          fontWeight: 700,
-          gap: '12px',
+          minHeight: '46px',
+          minWidth: '200px',
+          padding: '12px 24px',
+          fontSize: '15px',
+          fontWeight: 600,
+          gap: '10px',
         } : {}),
         ...style,
       }}

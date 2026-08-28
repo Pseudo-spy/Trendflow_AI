@@ -22,7 +22,7 @@ export const ScenarioLabPage: React.FC = () => {
   const setLatestScenarioResult = context?.setLatestScenarioResult;
 
   // Visual-only state for protected ScenarioHero
-  const [visualParams, setVisualParams] = useState<ScenarioParameters>(defaultParams);
+  const [visualParams] = useState<ScenarioParameters>(defaultParams);
   
   const [isSimulating, setIsSimulating] = useState<boolean>(false);
   const [apiResponse, setApiResponse] = useState<ScenarioRunResponse | null>(null);
@@ -44,9 +44,7 @@ export const ScenarioLabPage: React.FC = () => {
     }
   };
 
-  const handleResetDefaults = () => {
-    setVisualParams(defaultParams);
-  };
+
 
   return (
     <PageTransitionLayout>
@@ -61,8 +59,6 @@ export const ScenarioLabPage: React.FC = () => {
       <ScenarioHero
         params={visualParams}
         isSimulating={isSimulating}
-        onRunSimulation={() => {}} // Disabled run from here to enforce single API call via controls
-        onResetDefaults={handleResetDefaults}
       />
 
       {/* Backend-driven Scenario Controls */}

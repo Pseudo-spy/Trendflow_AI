@@ -4,23 +4,18 @@ const ScenarioSimulation3D = React.lazy(() => import('../../scenes/ScenarioSimul
 import type { SupplyChainNodeData } from '../../types/three';
 import type { ScenarioParameters } from '../../types/scenario';
 import { Badge } from '../ui/Badge';
-import { GlowButton } from '../ui/GlowButton';
-import { Compass, Sparkles, Sliders, RefreshCw } from 'lucide-react';
+import { Compass, Sliders } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 
 interface ScenarioHeroProps {
   params: ScenarioParameters;
   isSimulating: boolean;
-  onRunSimulation: () => void;
-  onResetDefaults: () => void;
 }
 
 export const ScenarioHero: React.FC<ScenarioHeroProps> = ({
   params,
   isSimulating,
-  onRunSimulation,
-  onResetDefaults,
 }) => {
   const [selectedNode, setSelectedNode] = useState<SupplyChainNodeData | null>(null);
   const { mode, cameraParallax, setCameraParallax } = useTheme();
@@ -118,35 +113,6 @@ export const ScenarioHero: React.FC<ScenarioHeroProps> = ({
             <Compass size={13} />
             <span>Mouse Parallax: {cameraParallax ? 'ON' : 'OFF'}</span>
           </button>
-
-          <button
-            onClick={onResetDefaults}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '6px 12px',
-              borderRadius: '8px',
-              background: isLight ? 'rgba(15, 23, 42, 0.05)' : 'rgba(255, 255, 255, 0.05)',
-              border: isLight ? '1px solid rgba(15, 23, 42, 0.1)' : '1px solid rgba(255, 255, 255, 0.1)',
-              color: isLight ? '#475569' : '#94A3B8',
-              fontSize: '11px',
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
-          >
-            <RefreshCw size={13} />
-            <span>Reset Baseline</span>
-          </button>
-
-          <GlowButton
-            variant="primary"
-            size="sm"
-            icon={<Sparkles size={13} />}
-            onClick={onRunSimulation}
-          >
-            {isSimulating ? 'Solving MILP...' : 'Re-Run Solver'}
-          </GlowButton>
         </div>
       </div>
 
