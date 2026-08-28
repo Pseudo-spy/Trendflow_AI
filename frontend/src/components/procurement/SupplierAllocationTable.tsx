@@ -69,24 +69,22 @@ export const SupplierAllocationTable: React.FC<SupplierAllocationTableProps> = (
                       {row.supplier_id}
                     </td>
                     <td style={{ padding: '10px 10px', fontWeight: 600, color: isLight ? '#475569' : '#94A3B8' }}>
-                      {row.supplier_name}
+                      {row.supplier_name || '—'}
                     </td>
                     <td style={{ padding: '10px 10px', fontWeight: 800, color: isLight ? '#0F172A' : '#F8FAFC', fontFamily: "'JetBrains Mono', monospace" }}>
-                      {row.quantity.toLocaleString()}
+                      {row.quantity?.toLocaleString() || '0'}
                     </td>
                     <td style={{ padding: '10px 10px', color: '#06B6D4', fontWeight: 700, fontFamily: "'JetBrains Mono', monospace" }}>
                       {row.percentage}%
                     </td>
                     <td style={{ padding: '10px 10px', color: isLight ? '#0F172A' : '#F8FAFC', fontWeight: 600, fontFamily: "'JetBrains Mono', monospace" }}>
-                      {row.unit_price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      {row.unit_price?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}
                     </td>
                     <td style={{ padding: '10px 10px', color: '#16A34A', fontWeight: 800, fontFamily: "'JetBrains Mono', monospace" }}>
-                      {row.total_cost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      {row.total_cost?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}
                     </td>
                     <td style={{ padding: '10px 10px', fontWeight: 600, color: isLight ? '#475569' : '#94A3B8' }}>
-                      {row.lead_time_days !== undefined && row.lead_time_days !== null
-                        ? `${row.lead_time_days} day${row.lead_time_days === 1 ? '' : 's'}`
-                        : '—'}
+                      {row.lead_time_days !== undefined ? `${row.lead_time_days} days` : '—'}
                     </td>
                     <td style={{ padding: '10px 10px', color: row.risk_score > 0.5 ? '#F43F5E' : '#16A34A', fontWeight: 700, fontFamily: "'JetBrains Mono', monospace" }}>
                       {row.risk_score.toFixed(2)}

@@ -11,7 +11,9 @@ export interface SupplierAllocationDetail {
   unit_price: number;
   total_cost: number;
   risk_score: number;
+  risk_level: string;
   lead_time_days: number;
+  expected_delivery_date: string;
 }
 
 export interface OptimizationResponse {
@@ -22,8 +24,21 @@ export interface OptimizationResponse {
   required_quantity: number;
   total_allocated: number;
   total_cost: number;
-  objective_value: number;
-  weighted_lead_time_days: number;
+  objective_value?: number;
+  objective_bound?: number;
+  solve_time_seconds: number;
+  model_version: string;
+  solver_name: string;
+  kpis: {
+    weighted_avg_risk_score: number;
+    weighted_delivery_risk: number;
+    weighted_quality_risk: number;
+    weighted_lead_time_days: number;
+    weighted_quality_score: number;
+    weighted_otd_score: number;
+    suppliers_used: number;
+    high_risk_share: number;
+  };
   allocation: SupplierAllocationDetail[];
 }
 

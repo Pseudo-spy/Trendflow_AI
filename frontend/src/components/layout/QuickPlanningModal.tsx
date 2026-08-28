@@ -45,7 +45,6 @@ export const QuickPlanningModal: React.FC<QuickPlanningModalProps> = ({ isOpen, 
       const response = await runSopEngine({ sku: sku.trim(), target_date: targetDate });
       
       setResult(response);
-      sessionStorage.setItem('trendflow.latestSopResult', JSON.stringify(response));
       
       if (onPlanningComplete) {
         onPlanningComplete(response);

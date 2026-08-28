@@ -41,6 +41,16 @@ export const AppLayout: React.FC = () => {
     }
     return null;
   });
+  
+  const persistLatestSopResult = (result: MaterialRequirementContract | null) => {
+    setLatestSopResult(result);
+    if (result) {
+      sessionStorage.setItem('trendflow.latestSopResult', JSON.stringify(result));
+    } else {
+      sessionStorage.removeItem('trendflow.latestSopResult');
+    }
+  };
+  
   const [latestProcurementResult, setLatestProcurementResult] = useState<OptimizationResponse | null>(null);
   const [latestRiskResult, setLatestRiskResult] = useState<RiskPredictionResponse | null>(null);
   const [latestScenarioResult, setLatestScenarioResult] = useState<ScenarioRunResponse | null>(null);
@@ -93,7 +103,7 @@ export const AppLayout: React.FC = () => {
         <Header 
           onMenuClick={() => setIsSidebarOpen(true)} 
           isTablet={isTablet} 
-          onSopPlanningComplete={(result) => setLatestSopResult(result)}
+          onSopPlanningComplete={persistLatestSopResult}
         />
 
         <main
@@ -106,12 +116,18 @@ export const AppLayout: React.FC = () => {
             position: 'relative',
           }}
         >
-          <Outlet context={{ 
-            latestSopResult, setLatestSopResult,
-            latestProcurementResult, setLatestProcurementResult,
-            latestRiskResult, setLatestRiskResult,
-            latestScenarioResult, setLatestScenarioResult
-          } satisfies AppOutletContext} />
+          <Outlet 
+            context={{
+              latestSopResult,
+              setLatestSopResult: persistLatestSopResult,
+              latestProcurementResult,
+              setLatestProcurementResult,
+              latestRiskResult,
+              setLatestRiskResult,
+              latestScenarioResult,
+              setLatestScenarioResult
+            } as AppOutletContext}
+          />
         </main>
       </div>
     </div>

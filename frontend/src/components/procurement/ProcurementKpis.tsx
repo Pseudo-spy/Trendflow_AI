@@ -22,20 +22,27 @@ export const ProcurementKpis: React.FC<ProcurementKpisProps> = ({ data }) => {
     );
   }
 
-  const suppliersUsed = data.allocation.length;
+  const suppliersUsed = data.kpis?.suppliers_used ?? data.allocation.length;
 
   let leadTimeDisplay = '—';
-  if (data.allocation.length === 1) {
-    const val = data.allocation[0].lead_time_days;
-    if (val !== undefined && val !== null) {
-      leadTimeDisplay = `${val} day${val === 1 ? '' : 's'}`;
+  if (data.kpis?.weighted_lead_time_days !== undefined) {
+    const val = Math.round(data.kpis.weighted_lead_time_days);
+    leadTimeDisplay = `${val} day${val === 1 ? '' : 's'}`;
+  }
+
+  let optimalityDisplay = '—';
+  if (data.status === 'OPTIMAL') {
+    optimalityDisplay = '100%';
+  } else if (data.status === 'FEASIBLE' && data.objective_value !== undefined && data.objective_bound !== undefined) {
+    if (data.objective_bound > 0) {
+      const gap = Math.abs(data.objective_value - data.objective_bound) / Math.abs(data.objective_bound);
+      const opt = Math.max(0, 100 - (gap * 100));
+      optimalityDisplay = `${opt.toFixed(1)}%`;
+    } else {
+      optimalityDisplay = 'FEASIBLE';
     }
-  } else {
-    const val = data.weighted_lead_time_days;
-    if (val !== undefined && val !== null) {
-      const rounded = Math.round(val);
-      leadTimeDisplay = `${rounded} day${rounded === 1 ? '' : 's'}`;
-    }
+  } else if (data.status) {
+    optimalityDisplay = data.status;
   }
 
   return (
@@ -141,7 +148,7 @@ export const ProcurementKpis: React.FC<ProcurementKpisProps> = ({ data }) => {
           </div>
         </div>
         <div style={{ marginTop: '16px', fontSize: '24px', fontWeight: 800, color: isLight ? '#0F172A' : '#F8FAFC', fontFamily: "'JetBrains Mono', monospace" }}>
-          {data.objective_value !== undefined && data.objective_value !== null ? data.objective_value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—'}
+          {optimalityDisplay}
         </div>
       </CinematicCard>
     </div>
