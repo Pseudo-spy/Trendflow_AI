@@ -101,17 +101,30 @@ class MaterialItem(BaseModel):
 # --- Procurement & Optimization Schemas (P3 -> P1 Core Contract) ---
 class SupplierAllocationDetail(BaseModel):
     supplier_id: str
+    supplier_name: str
     quantity: int
     percentage: float
     unit_price: float
+    total_cost: float
     risk_score: float
-
+    risk_level: str
+    lead_time_days: int
+    expected_delivery_date: str
 
 class OptimizationResponse(BaseModel):
+    status: str
     material_id: str
+    plant_id: str
+    priority: str
     required_quantity: int
     total_allocated: int
     total_cost: float
+    objective_value: Optional[float] = None
+    objective_bound: Optional[float] = None
+    solve_time_seconds: float
+    model_version: str
+    solver_name: str
+    kpis: dict
     allocation: List[SupplierAllocationDetail]
 
 
@@ -123,11 +136,13 @@ class RiskPredictionRequest(BaseModel):
 
 class RiskPredictionResponse(BaseModel):
     supplier_id: str
-    material_id: str
-    delay_probability: float
-    predicted_delay_days: int
-    risk_level: str
+    material_id: Optional[str] = None
     risk_score: float
+    risk_level: str
+    delivery_risk: float
+    quality_risk: float
+    prediction_date: str
+    model_version: str
 
 
 class ScenarioRunRequest(BaseModel):

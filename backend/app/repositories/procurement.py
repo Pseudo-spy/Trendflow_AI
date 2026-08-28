@@ -12,6 +12,11 @@ _DATA_DIR = _PROJECT_ROOT / "data" / "sample"
 _REPORTS_DIR = _PROJECT_ROOT / "reports"
 
 
+from optimization.schemas import AllocationRequest
+from optimization.optimizer import SupplierAllocationOptimizer
+from optimization.loader import load_supplier_options
+from optimization.config import OptimizationConfig
+
 def run_procurement_optimization(
     material_id: str,
     required_quantity: int,
@@ -19,69 +24,106 @@ def run_procurement_optimization(
     plant_id: str,
     priority: str = "HIGH"
 ) -> Dict[str, Any]:
-    if material_id == "MAT001" and required_quantity == 30000:
-        allocations = [
-            {
-                "supplier_id": "SUP001",
-                "quantity": 15000,
-                "percentage": 50.0,
-                "unit_price": 145.0,
-                "risk_score": 0.12
-            },
-            {
-                "supplier_id": "SUP002",
-                "quantity": 10000,
-                "percentage": 33.33,
-                "unit_price": 138.0,
-                "risk_score": 0.28
-            },
-            {
-                "supplier_id": "SUP004",
-                "quantity": 5000,
-                "percentage": 16.67,
-                "unit_price": 150.0,
-                "risk_score": 0.08
-            }
-        ]
-        total_cost = sum(a["quantity"] * a["unit_price"] for a in allocations)
-    else:
-        q1 = int(required_quantity * 0.5)
-        q2 = int(required_quantity * 0.3)
-        q3 = required_quantity - q1 - q2
-        allocations = [
-            {"supplier_id": "SUP001", "quantity": q1, "percentage": 50.0, "unit_price": 145.0, "risk_score": 0.12},
-            {"supplier_id": "SUP002", "quantity": q2, "percentage": 30.0, "unit_price": 138.0, "risk_score": 0.28},
-            {"supplier_id": "SUP004", "quantity": q3, "percentage": 20.0, "unit_price": 150.0, "risk_score": 0.08}
-        ]
-        total_cost = sum(a["quantity"] * a["unit_price"] for a in allocations)
+    # 1. Parse date
+    req_date = datetime.strptime(required_date, "%Y-%m-%d").date()
+    
+    # 2. Build allocation request
+    request = AllocationRequest(
+        material_id=material_id,
+        required_quantity=required_quantity,
+        required_date=req_date,
+        plant_id=plant_id,
+        priority=priority
+    )
+
+    # 3. Load actual options (using Scenario's existing CSV loader setup)
+    try:
+        supplier_options = load_supplier_options(
+            supplier_materials_csv=_DATA_DIR / "supplier_materials.csv",
+            suppliers_csv=_DATA_DIR / "suppliers.csv",
+            risk_predictions_csv=_REPORTS_DIR / "risk_predictions.csv",
+            supplier_contracts_csv=_DATA_DIR / "supplier_contracts.csv",
+            material_id=material_id
+        )
+    except ValueError:
+        supplier_options = []
+    
+    # Filter for the material
+    options_for_mat = [opt for opt in supplier_options if opt.material_id == material_id]
+
+    # 4. Run Optimizer
+    config = OptimizationConfig()
+    optimizer = SupplierAllocationOptimizer(config=config)
+    result = optimizer.optimize(request, options_for_mat)
+
+    # 5. Serialize full OptimizationResult matching the schema
+    allocation_list = [
+        {
+            "supplier_id": line.supplier_id,
+            "supplier_name": line.supplier_name,
+            "quantity": line.quantity,
+            "percentage": line.percentage,
+            "unit_price": line.unit_price,
+            "total_cost": line.total_cost,
+            "risk_score": line.risk_score,
+            "risk_level": line.risk_level,
+            "lead_time_days": line.lead_time_days,
+            "expected_delivery_date": line.expected_delivery_date.isoformat(),
+        }
+        for line in result.allocation
+    ]
 
     return {
-        "material_id": material_id,
-        "required_quantity": required_quantity,
-        "total_allocated": required_quantity,
-        "total_cost": total_cost,
-        "allocation": allocations
+        "status": result.status,
+        "material_id": result.material_id,
+        "plant_id": result.plant_id,
+        "priority": result.priority,
+        "required_quantity": result.required_quantity,
+        "total_allocated": result.total_allocated,
+        "total_cost": result.total_cost,
+        "objective_value": result.objective_value,
+        "objective_bound": result.objective_bound,
+        "solve_time_seconds": result.solve_time_seconds,
+        "model_version": result.model_version,
+        "solver_name": result.solver_name,
+        "kpis": vars(result.kpis),
+        "allocation": allocation_list
     }
 
+
+import csv
 
 def predict_supplier_risk(supplier_id: str, material_id: str) -> Dict[str, Any]:
-    risk_data = {
-        "SUP001": {"delay_prob": 0.08, "delay_days": 1, "level": "LOW", "score": 0.12},
-        "SUP002": {"delay_prob": 0.22, "delay_days": 3, "level": "MEDIUM", "score": 0.28},
-        "SUP003": {"delay_prob": 0.55, "delay_days": 7, "level": "HIGH", "score": 0.65},
-        "SUP004": {"delay_prob": 0.05, "delay_days": 0, "level": "LOW", "score": 0.08},
-        "SUP005": {"delay_prob": 0.18, "delay_days": 2, "level": "MEDIUM", "score": 0.24}
-    }
-    info = risk_data.get(supplier_id, {"delay_prob": 0.15, "delay_days": 2, "level": "MEDIUM", "score": 0.20})
-
-    return {
+    risk_csv = _REPORTS_DIR / "risk_predictions.csv"
+    
+    # Default fallback
+    info = {
         "supplier_id": supplier_id,
         "material_id": material_id,
-        "delay_probability": info["delay_prob"],
-        "predicted_delay_days": info["delay_days"],
-        "risk_level": info["level"],
-        "risk_score": info["score"]
+        "risk_score": 0.20,
+        "risk_level": "MEDIUM",
+        "delivery_risk": 0.15,
+        "quality_risk": 0.10,
+        "prediction_date": "2026-08-23",
+        "model_version": "p3-risk-v2"
     }
+
+    if risk_csv.exists():
+        with open(risk_csv, "r", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                if row["supplier_id"] == supplier_id:
+                    info.update({
+                        "risk_score": float(row["risk_score"]),
+                        "risk_level": row["risk_level"],
+                        "delivery_risk": float(row["delivery_risk"]),
+                        "quality_risk": float(row["quality_risk"]),
+                        "prediction_date": row["prediction_date"],
+                        "model_version": row["model_version"]
+                    })
+                    break
+
+    return info
 
 
 def run_scenario_simulation(
