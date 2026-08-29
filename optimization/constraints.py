@@ -16,7 +16,7 @@ class FeasibilityResult:
 
 
 def supplier_deadline(option: SupplierOption, current_date: date) -> date:
-    return current_date + timedelta(days=option.contract_lead_time_days)
+    return current_date + timedelta(days=option.lead_time_days)
 
 
 def filter_feasible_suppliers(
@@ -29,20 +29,13 @@ def filter_feasible_suppliers(
     excluded: list[tuple[SupplierOption, str]] = []
 
     for supplier in suppliers:
-        if config.enforce_approved_supplier and (not supplier.approved or not supplier.contract_active):
-            excluded.append((supplier, "supplier is not approved/contract is inactive"))
+        if config.enforce_approved_supplier and not supplier.approved:
+            excluded.append((supplier, "supplier is not approved"))
             continue
         if config.enforce_required_date and supplier_deadline(supplier, current_date) > request.required_date:
             excluded.append((supplier, "contract/lead-time deadline misses required_date"))
             continue
-        if config.enforce_contract_otd and supplier.contract_otd_target is not None:
-            if supplier.otd_score / 100.0 + 1e-9 < supplier.contract_otd_target:
-                excluded.append((supplier, "historical OTD is below the contractual OTD target"))
-                continue
-        if config.enforce_contract_quality and supplier.contract_quality_target is not None:
-            if supplier.quality_score + 1e-9 < supplier.contract_quality_target:
-                excluded.append((supplier, "historical quality is below the contractual quality target"))
-                continue
+
         if supplier.effective_max_allocation <= 0:
             excluded.append((supplier, "effective maximum allocation is zero"))
             continue
@@ -99,8 +92,8 @@ def add_allocation_constraints(
     cap = int(round(request.required_quantity * config.high_risk_allocation_cap))
     model.Add(high_risk <= cap)
 
-    # Contract-approved supplier hard rule is encoded by filtering, but we also keep
-    # a defensive assertion here so future callers cannot accidentally bypass it.
+    # Contract-approved supplier hard rule encoded by filtering,
+    # defensive assertion so future callers cannot bypass it.
     for option in options:
-        if config.enforce_approved_supplier and (not option.approved or not option.contract_active):
+        if config.enforce_approved_supplier and not option.approved:
             model.Add(allocation_vars[option.supplier_id] == 0)

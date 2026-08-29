@@ -42,10 +42,7 @@ def build_objective_terms(
         lead_component = _minmax(supplier.lead_time_days, lmin, lmax)
         quality_component = 1.0 - _minmax(supplier.quality_score, qmin, qmax)
         otd_component = 1.0 - _minmax(supplier.otd_score, omin, omax)
-        otd_target_gap = max(0.0, (supplier.contract_otd_target or 0.0) - supplier.otd_score / 100.0)
-        quality_target_gap = max(0.0, (supplier.contract_quality_target or 0.0) - supplier.quality_score) / 100.0
-        contract_target_penalty = 0.10 * otd_target_gap + 0.05 * quality_target_gap
-        contract_penalty = supplier.contract_delay_penalty_rate * supplier.risk_score + contract_target_penalty
+        contract_penalty = 0.0
 
         score = (
             w.cost * cost_component
@@ -67,8 +64,6 @@ def build_objective_terms(
                 "quality_penalty_component": quality_component,
                 "otd_penalty_component": otd_component,
                 "contract_penalty_component": contract_penalty,
-                "contract_otd_target_gap": otd_target_gap,
-                "contract_quality_target_gap": quality_target_gap,
                 "effective_objective_score": score,
             },
         )

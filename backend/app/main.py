@@ -22,10 +22,21 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Enable CORS for React Frontend integration (P4)
+import os
+
+# Configure CORS origins from environment variable (production: Vercel URL)
+# For local dev and testing, also allow localhost origins
+_FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
+_ALLOWED_ORIGINS = [
+    _FRONTEND_URL,
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "http://127.0.0.1:5173",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

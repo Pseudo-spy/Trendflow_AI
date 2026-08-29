@@ -3,15 +3,14 @@ import argparse
 from datetime import datetime, timezone
 from pathlib import Path
 import pandas as pd
-from .features import clean_features, latest_supplier_snapshot, load_contracts_csv, load_performance_csv, merge_performance_and_contracts
+from .features import clean_features, latest_supplier_snapshot, load_performance_csv, merge_performance_and_contracts
 from .model import SupplierRiskModel
 from .schemas import RiskPrediction
 ROOT = Path(__file__).resolve().parents[2]
 
-def generate_predictions(model_path: str | Path, performance_path: str | Path, contracts_path: str | Path) -> pd.DataFrame:
+def generate_predictions(model_path: str | Path, performance_path: str | Path, contracts_path: str | Path | None = None) -> pd.DataFrame:
     perf = load_performance_csv(performance_path)
-    contracts = load_contracts_csv(contracts_path)
-    df = clean_features(merge_performance_and_contracts(perf, contracts))
+    df = clean_features(merge_performance_and_contracts(perf, pd.DataFrame()))
     latest = latest_supplier_snapshot(df).reset_index(drop=True)
     model = SupplierRiskModel.load(model_path)
     scores = model.predict_scores(latest[model.feature_names]).reset_index(drop=True)
@@ -34,12 +33,12 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", default=str(ROOT / "models/supplier_risk.joblib"))
     parser.add_argument("--performance", default=str(ROOT / "data/sample/supplier_performance.csv"))
-    parser.add_argument("--contracts", default=str(ROOT / "data/sample/supplier_contracts.csv"))
     parser.add_argument("--output", default=str(ROOT / "reports/risk_predictions.csv"))
     args = parser.parse_args()
-    out = generate_predictions(args.model, args.performance, args.contracts)
+    out = generate_predictions(args.model, args.performance)
     Path(args.output).parent.mkdir(parents=True, exist_ok=True)
     out.to_csv(args.output, index=False)
     print(out.to_string(index=False))
 
 if __name__ == "__main__": main()
+

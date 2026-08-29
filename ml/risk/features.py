@@ -12,13 +12,7 @@ PERFORMANCE_FEATURES = [
     "lead_time_days",
     "recent_otd_trend",
 ]
-CONTRACT_FEATURES = [
-    "contract_otd_target",
-    "contract_quality_target",
-    "contract_max_lead_time_days",
-    "contract_delay_penalty_rate",
-    "contract_active",
-]
+CONTRACT_FEATURES = []
 ALL_FEATURES = PERFORMANCE_FEATURES + CONTRACT_FEATURES
 
 def _require_columns(df: pd.DataFrame, columns: Iterable[str], name: str) -> None:
@@ -41,11 +35,7 @@ def load_contracts_csv(path: str | Path) -> pd.DataFrame:
     return df
 
 def merge_performance_and_contracts(performance: pd.DataFrame, contracts: pd.DataFrame) -> pd.DataFrame:
-    merged = performance.merge(contracts, on="supplier_id", how="left", validate="many_to_one")
-    missing = merged.loc[merged["contract_active"].isna(), "supplier_id"].unique().tolist()
-    if missing:
-        raise ValueError(f"Missing contract record(s) for suppliers: {missing}")
-    return merged
+    return performance
 
 def clean_features(df: pd.DataFrame) -> pd.DataFrame:
     out = df.copy()
@@ -55,7 +45,6 @@ def clean_features(df: pd.DataFrame) -> pd.DataFrame:
         bad = out[ALL_FEATURES].isna().sum()
         bad = bad[bad > 0].to_dict()
         raise ValueError(f"Feature data contains missing/non-numeric values: {bad}")
-    out["contract_active"] = out["contract_active"].astype(int)
     return out
 
 def make_quality_risk_flag(df: pd.DataFrame, threshold: float = 90.0) -> pd.Series:

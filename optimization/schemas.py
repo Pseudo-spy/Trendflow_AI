@@ -42,11 +42,6 @@ class SupplierOption:
     risk_level: RiskLevel
     delivery_risk: float
     quality_risk: float
-    contract_otd_target: float | None = None
-    contract_quality_target: float | None = None
-    contract_max_lead_time_days: int | None = None
-    contract_delay_penalty_rate: float = 0.0
-    contract_active: bool = True
     approved: bool = True
 
     def __post_init__(self) -> None:
@@ -71,22 +66,13 @@ class SupplierOption:
                 raise ValueError(f"{name} must be in [0, 1]")
         if not 0 <= self.quality_score <= 100 or not 0 <= self.otd_score <= 100:
             raise ValueError("quality_score and otd_score must be in [0, 100]")
-        if self.contract_otd_target is not None and not 0 <= self.contract_otd_target <= 1:
-            raise ValueError("contract_otd_target must be in [0, 1]")
-        if self.contract_quality_target is not None and not 0 <= self.contract_quality_target <= 100:
-            raise ValueError("contract_quality_target must be in [0, 100]")
-        if self.contract_max_lead_time_days is not None and self.contract_max_lead_time_days < 0:
-            raise ValueError("contract_max_lead_time_days cannot be negative")
-        if self.contract_delay_penalty_rate < 0:
-            raise ValueError("contract_delay_penalty_rate cannot be negative")
+
 
     @property
     def effective_max_allocation(self) -> int:
         return min(self.capacity, self.max_allocation)
 
-    @property
-    def contract_lead_time_days(self) -> int:
-        return self.contract_max_lead_time_days if self.contract_max_lead_time_days is not None else self.lead_time_days
+
 
 
 @dataclass(frozen=True)

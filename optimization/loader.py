@@ -24,14 +24,7 @@ REQUIRED_SUPPLIER_COLUMNS = {
     "supplier_name",
 }
 
-REQUIRED_CONTRACT_COLUMNS = {
-    "supplier_id",
-    "contract_otd_target",
-    "contract_quality_target",
-    "contract_max_lead_time_days",
-    "contract_delay_penalty_rate",
-    "contract_active",
-}
+
 
 
 def _read_csv(path: str | Path) -> pd.DataFrame:
@@ -214,27 +207,7 @@ def load_supplier_options(
         )
 
     # Contract data.
-    if supplier_contracts_csv:
-        contracts = _read_csv(supplier_contracts_csv)
-
-        _validate_columns(
-            contracts,
-            REQUIRED_CONTRACT_COLUMNS,
-            "supplier_contracts",
-        )
-
-        merged = merged.merge(
-            contracts,
-            on="supplier_id",
-            how="left",
-            validate="one_to_one",
-        )
-    else:
-        merged["contract_otd_target"] = pd.NA
-        merged["contract_quality_target"] = pd.NA
-        merged["contract_max_lead_time_days"] = pd.NA
-        merged["contract_delay_penalty_rate"] = 0.0
-        merged["contract_active"] = 1
+    merged["contract_active"] = 1
 
     # P3 risk data.
     if risk_predictions_csv:
@@ -320,10 +293,6 @@ def load_supplier_options(
     options: list[SupplierOption] = []
 
     for row in merged.to_dict(orient="records"):
-        contract_active = (
-            int(row.get("contract_active", 1) or 0) == 1
-        )
-
         capacity = int(row["capacity"])
         max_allocation = min(
             int(row["max_allocation"]),
@@ -348,44 +317,7 @@ def load_supplier_options(
                 ).upper(),
                 delivery_risk=float(row["delivery_risk"]),
                 quality_risk=float(row["quality_risk"]),
-                contract_otd_target=(
-                    None
-                    if pd.isna(
-                        row.get("contract_otd_target")
-                    )
-                    else float(
-                        row["contract_otd_target"]
-                    )
-                ),
-                contract_quality_target=(
-                    None
-                    if pd.isna(
-                        row.get("contract_quality_target")
-                    )
-                    else float(
-                        row["contract_quality_target"]
-                    )
-                ),
-                contract_max_lead_time_days=(
-                    None
-                    if pd.isna(
-                        row.get(
-                            "contract_max_lead_time_days"
-                        )
-                    )
-                    else int(
-                        row["contract_max_lead_time_days"]
-                    )
-                ),
-                contract_delay_penalty_rate=float(
-                    row.get(
-                        "contract_delay_penalty_rate",
-                        0.0,
-                    )
-                    or 0.0
-                ),
-                contract_active=contract_active,
-                approved=contract_active,
+                approved=True,
             )
         )
 

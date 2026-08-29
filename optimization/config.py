@@ -41,9 +41,6 @@ class OptimizationConfig:
 
     weights: ObjectiveWeights = ObjectiveWeights()
     enforce_required_date: bool = True
-    enforce_contract_lead_time: bool = True
-    enforce_contract_quality: bool = False
-    enforce_contract_otd: bool = False
     enforce_approved_supplier: bool = True
     require_full_allocation: bool = True
     allow_partial_coverage: bool = False
