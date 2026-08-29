@@ -59,7 +59,7 @@ export const RiskInputForm: React.FC<RiskInputFormProps> = ({
   return (
     <CinematicCard
       title="Risk Assessment Input"
-      subtitle="Select a supplier and material to evaluate the current backend risk profile."
+      subtitle="Select a supplier and material to evaluate the risk profile."
       headerAction={<Badge variant="cyan">Manual Input</Badge>}
     >
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', marginBottom: '20px' }}>

@@ -29,7 +29,7 @@ export const AllocationRadialChart: React.FC<AllocationRadialChartProps> = ({ da
   return (
     <CinematicCard
       title="Supplier Allocation Share"
-      subtitle="Current backend allocation by supplier."
+      subtitle="Current allocation by supplier."
       icon={<Cpu size={18} color="#06B6D4" />}
       glowColor="cyan"
       headerAction={<Badge variant="cyan">Allocation Result</Badge>}

@@ -57,7 +57,7 @@ export const MultiHorizonForecastChart: React.FC<MultiHorizonForecastChartProps>
   return (
     <CinematicCard
       title="Demand Trend Overview"
-      subtitle="Historical actuals and projected demand from backend data"
+      subtitle="Historical actuals and projected demand data"
       icon={<TrendingUp size={18} color="#06B6D4" />}
       glowColor="cyan"
     >

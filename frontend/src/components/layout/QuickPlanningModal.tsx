@@ -53,7 +53,7 @@ export const QuickPlanningModal: React.FC<QuickPlanningModalProps> = ({ isOpen, 
       setIsCompleted(true);
     } catch (error) {
       console.error('Failed to run SOP engine', error);
-      setApiError('Failed to execute S&OP planning. Please verify the backend is running.');
+      setApiError('Failed to execute S&OP planning. Please verify the system is running.');
       setIsCompleted(false);
     } finally {
       setIsRunning(false);
@@ -72,7 +72,7 @@ export const QuickPlanningModal: React.FC<QuickPlanningModalProps> = ({ isOpen, 
       isOpen={isOpen}
       onClose={onClose}
       title="S&OP Material Planning"
-      subtitle="Generate the current backend material requirement for a SKU and target date."
+      subtitle="Generate the current material requirement for a SKU and target date."
       maxWidth="lg"
     >
       {!isCompleted ? (
@@ -96,12 +96,12 @@ export const QuickPlanningModal: React.FC<QuickPlanningModalProps> = ({ isOpen, 
                   Material Planning Engine
                 </div>
                 <div style={{ fontSize: '11px', color: '#94A3B8' }}>
-                  Execute backend material requirement planning
+                  Execute material requirement planning
                 </div>
               </div>
             </div>
             <Badge variant="cyan" pulse>
-              Backend Prototype
+              Prototype
             </Badge>
           </div>
 

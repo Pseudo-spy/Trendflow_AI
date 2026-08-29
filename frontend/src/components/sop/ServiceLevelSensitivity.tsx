@@ -15,7 +15,7 @@ export const ServiceLevelSensitivity: React.FC = () => {
       subtitle="Simulate holding capital versus stockout risk trade-offs."
       icon={<Sliders size={18} color="#16A34A" />}
       glowColor="emerald"
-      headerAction={<Badge variant="muted">Backend Pending</Badge>}
+      headerAction={<Badge variant="muted">Data Pending</Badge>}
     >
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
         {/* Slider 1: Target Service Level */}
@@ -101,19 +101,19 @@ export const ServiceLevelSensitivity: React.FC = () => {
         <div>
           <div style={{ fontSize: '10px', color: '#64748B' }}>Est. Holding Capital</div>
           <div style={{ fontSize: '13px', fontWeight: 600, color: '#94A3B8', marginTop: '4px' }}>
-            Backend Pending
+            Data Pending
           </div>
         </div>
         <div>
           <div style={{ fontSize: '10px', color: '#64748B' }}>Stockout Probability</div>
           <div style={{ fontSize: '13px', fontWeight: 600, color: '#94A3B8', marginTop: '4px' }}>
-            Backend Pending
+            Data Pending
           </div>
         </div>
         <div>
           <div style={{ fontSize: '10px', color: '#64748B' }}>Projected Net Savings</div>
           <div style={{ fontSize: '13px', fontWeight: 600, color: '#94A3B8', marginTop: '4px' }}>
-            Backend Pending
+            Data Pending
           </div>
         </div>
       </div>
@@ -126,7 +126,7 @@ export const ServiceLevelSensitivity: React.FC = () => {
           onClick={() => {}}
           disabled={true}
         >
-          Backend Support Pending
+          Support Pending
         </GlowButton>
       </div>
     </CinematicCard>

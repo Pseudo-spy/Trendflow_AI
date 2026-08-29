@@ -15,7 +15,7 @@ export const FactoryCapacityModule: React.FC = () => {
       subtitle="Production capacity visibility."
       icon={<Activity size={18} color="#6366F1" />}
       glowColor="indigo"
-      headerAction={<Badge variant="muted">Backend Pending</Badge>}
+      headerAction={<Badge variant="muted">Data Pending</Badge>}
     >
       <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
@@ -44,7 +44,7 @@ export const FactoryCapacityModule: React.FC = () => {
               <td colSpan={7} style={{ padding: '40px 0' }}>
                 <EmptyState 
                   title="No factory capacity data available" 
-                  message="Factory capacity data will appear here after backend integration."
+                  message="Factory capacity data will appear here soon."
                 />
               </td>
             </tr>

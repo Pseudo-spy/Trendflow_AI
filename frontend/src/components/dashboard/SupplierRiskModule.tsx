@@ -29,7 +29,7 @@ export const SupplierRiskModule: React.FC<SupplierRiskModuleProps> = ({ supplier
   return (
     <CinematicCard
       title="Global Supplier Risk"
-      subtitle="Current backend supplier risk overview."
+      subtitle="Current supplier risk overview."
       icon={<AlertTriangle size={18} color="#F43F5E" />}
       glowColor="rose"
       headerAction={<Badge variant="rose">Risk Overview</Badge>}

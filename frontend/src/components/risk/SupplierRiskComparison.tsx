@@ -71,7 +71,7 @@ export const SupplierRiskComparison: React.FC<SupplierRiskComparisonProps> = ({ 
   return (
     <CinematicCard
       title="Supplier Risk Comparison"
-      subtitle="Compare backend-driven risk dimensions across analyzed suppliers."
+      subtitle="Compare risk dimensions across analyzed suppliers."
       icon={<BarChart2 size={18} color="#06B6D4" />}
       glowColor="cyan"
     >

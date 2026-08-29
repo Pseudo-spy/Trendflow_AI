@@ -15,7 +15,7 @@ export const MultiEchelonDcTable: React.FC = () => {
       subtitle="Distribution center inventory levels and requirements."
       icon={<Boxes size={18} color="#16A34A" />}
       glowColor="emerald"
-      headerAction={<Badge variant="muted">Backend Pending</Badge>}
+      headerAction={<Badge variant="muted">Data Pending</Badge>}
     >
       <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
@@ -43,7 +43,7 @@ export const MultiEchelonDcTable: React.FC = () => {
               <td colSpan={6} style={{ padding: '40px 0' }}>
                 <EmptyState 
                   title="No distribution inventory available" 
-                  message="Inventory distribution data will appear here after backend integration."
+                  message="Inventory distribution data will appear here soon."
                 />
               </td>
             </tr>

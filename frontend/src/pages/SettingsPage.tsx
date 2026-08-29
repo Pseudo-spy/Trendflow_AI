@@ -12,7 +12,7 @@ export const SettingsPage: React.FC = () => {
     <PageTransitionLayout>
       <PageHeader
         title="System Settings & Preferences"
-        subtitle="Graphics rendering, 3D visualization fidelity, and backend connection configs"
+        subtitle="Graphics rendering, 3D visualization fidelity, and system connection configs"
         badgeText="System"
         badgeVariant="cyan"
       />

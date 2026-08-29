@@ -67,7 +67,7 @@ export const DemandDriversChart: React.FC = () => {
       subtitle="Execute baseline demand forecast prototype"
       icon={<Zap size={18} color="#F59E0B" />}
       glowColor="amber"
-      headerAction={<Badge variant="amber">Backend Prototype</Badge>}
+      headerAction={<Badge variant="amber">System Data</Badge>}
     >
       {/* Inputs */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>

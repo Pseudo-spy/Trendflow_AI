@@ -31,7 +31,7 @@ export const ProcurementPage: React.FC = () => {
       if (setLatestProcurementResult) setLatestProcurementResult(response);
     } catch (err) {
       console.error('Failed to run procurement allocation', err);
-      setApiError('Failed to execute procurement allocation. Please check the backend connection.');
+      setApiError('Failed to execute procurement allocation. Please check the system connection.');
     } finally {
       setIsLoading(false);
     }
@@ -41,7 +41,7 @@ export const ProcurementPage: React.FC = () => {
     <PageTransitionLayout>
       <PageHeader
         title="Procurement Allocation"
-        subtitle="Allocate required material quantity across suppliers using the current backend procurement logic."
+        subtitle="Allocate required material quantity across suppliers using the current procurement logic."
         badgeText="Allocation Engine"
         badgeVariant="cyan"
       />

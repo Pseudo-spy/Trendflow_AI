@@ -293,7 +293,7 @@ export const ProcurementHero: React.FC<ProcurementHeroProps> = ({ result }) => {
                 }}
               >
                 {isResultAvailable ? (
-                  <><strong>Backend Procurement Allocation:</strong> Distributed volume across network.</>
+                  <><strong>Procurement Allocation:</strong> Distributed volume across network.</>
                 ) : (
                   <><strong>No procurement allocation yet.</strong><br/>Run Procurement Allocation to populate this inspector.</>
                 )}

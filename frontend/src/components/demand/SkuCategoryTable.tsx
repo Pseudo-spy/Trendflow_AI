@@ -48,7 +48,7 @@ export const DemandHistoryTable: React.FC<DemandHistoryTableProps> = ({ data }) 
   return (
     <CinematicCard
       title="Historical Demand"
-      subtitle="Recorded demand history from backend"
+      subtitle="Recorded demand history"
       icon={<Calendar size={18} color="#06B6D4" />}
       glowColor="cyan"
       headerAction={<Badge variant="cyan">{data.length} Records</Badge>}

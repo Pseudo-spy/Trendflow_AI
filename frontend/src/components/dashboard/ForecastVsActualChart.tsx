@@ -53,7 +53,7 @@ export const ForecastVsActualChart: React.FC<ForecastVsActualChartProps> = ({ de
   return (
     <CinematicCard
       title="Demand History & Forecast"
-      subtitle="Historical demand and stored forecast values from the backend."
+      subtitle="Historical demand and stored forecast values."
       icon={<TrendingUp size={18} color="#8B5CF6" />}
       glowColor="indigo"
       headerAction={<Badge variant="indigo">Stored Forecast</Badge>}
@@ -61,7 +61,7 @@ export const ForecastVsActualChart: React.FC<ForecastVsActualChartProps> = ({ de
       <div style={{ width: '100%', height: '240px', marginTop: '16px' }}>
         {chartData.length === 0 ? (
           <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B' }}>
-            No demand data available from backend
+            No demand data available
           </div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">

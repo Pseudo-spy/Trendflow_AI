@@ -16,7 +16,7 @@ export const SopHealthModule: React.FC<SopHealthModuleProps> = ({ inventory = []
   return (
     <CinematicCard
       title="Inventory Overview"
-      subtitle="Current backend inventory snapshot"
+      subtitle="Current inventory snapshot"
       icon={<Activity size={18} color="#10B981" />}
       glowColor="emerald"
       headerAction={<Badge variant="emerald">Inventory Data</Badge>}
@@ -24,7 +24,7 @@ export const SopHealthModule: React.FC<SopHealthModuleProps> = ({ inventory = []
       <div style={{ marginTop: '12px' }}>
         {inventory.length === 0 ? (
           <div style={{ padding: '24px', textAlign: 'center', color: '#64748B', fontSize: '13px' }}>
-            No inventory data available from backend
+            No inventory data available
           </div>
         ) : (
           <div style={{ maxHeight: '200px', overflowY: 'auto' }}>

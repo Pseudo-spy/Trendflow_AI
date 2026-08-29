@@ -26,7 +26,7 @@ export const ScenarioAllocationImpact: React.FC<ScenarioAllocationImpactProps> =
     return (
       <CinematicCard
         title="Scenario Allocation Impact"
-        subtitle="Backend-driven impact of the selected scenario."
+        subtitle="Impact of the selected scenario."
         icon={<Network size={18} color="#06B6D4" />}
         glowColor="cyan"
       >
@@ -41,7 +41,7 @@ export const ScenarioAllocationImpact: React.FC<ScenarioAllocationImpactProps> =
     return (
       <CinematicCard
         title="Scenario Allocation Impact"
-        subtitle="Backend-driven impact of the selected scenario."
+        subtitle="Impact of the selected scenario."
         icon={<Network size={18} color="#06B6D4" />}
         glowColor="cyan"
       >
@@ -58,7 +58,7 @@ export const ScenarioAllocationImpact: React.FC<ScenarioAllocationImpactProps> =
     return (
       <CinematicCard
         title="Scenario Allocation Impact"
-        subtitle="Backend-driven impact of the selected scenario."
+        subtitle="Impact of the selected scenario."
         icon={<Network size={18} color="#06B6D4" />}
         glowColor="cyan"
       >
@@ -131,7 +131,7 @@ export const ScenarioAllocationImpact: React.FC<ScenarioAllocationImpactProps> =
   return (
     <CinematicCard
       title="Scenario Allocation Impact"
-      subtitle="Backend-driven impact of the selected scenario."
+      subtitle="Impact of the selected scenario."
       icon={<Network size={18} color="#06B6D4" />}
       glowColor="cyan"
     >

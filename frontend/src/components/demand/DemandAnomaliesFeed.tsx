@@ -43,7 +43,7 @@ export const DemandForecastTable: React.FC<DemandForecastTableProps> = ({ data }
   return (
     <CinematicCard
       title="Demand Forecast"
-      subtitle="Projected demand quantities from backend forecast data"
+      subtitle="Projected demand quantities from forecast data"
       icon={<TrendingUp size={18} color="#16A34A" />}
       glowColor="emerald"
       headerAction={<Badge variant="emerald">{data.length} Records</Badge>}

@@ -45,7 +45,7 @@ export const LandingFooter: React.FC = () => {
             </span>
           </div>
           <p style={{ fontSize: '12px', color: '#94A3B8', lineHeight: '1.6' }}>
-            Integrated S&OP + Procurement Intelligence. Powered by backend allocation services and Three.js Spatial Twin.
+            Integrated S&OP + Procurement Intelligence. Powered by allocation services and Three.js Spatial Twin.
           </p>
         </div>
 

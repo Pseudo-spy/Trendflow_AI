@@ -18,7 +18,7 @@ export const SupplierAllocationTable: React.FC<SupplierAllocationTableProps> = (
   return (
     <CinematicCard
       title="Supplier Allocation"
-      subtitle="Current backend allocation by supplier."
+      subtitle="Current allocation by supplier."
       icon={<Cpu size={18} color="#6366F1" />}
       glowColor="indigo"
       headerAction={<Badge variant="cyan">Allocation Result</Badge>}

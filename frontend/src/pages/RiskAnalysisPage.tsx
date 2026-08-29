@@ -61,7 +61,7 @@ export const RiskAnalysisPage: React.FC = () => {
       if (setLatestRiskResult) setLatestRiskResult(enrichedResponse);
     } catch (err) {
       console.error('Failed to run risk prediction', err);
-      setApiError('Failed to fetch risk assessment. Please check the backend connection.');
+      setApiError('Failed to fetch risk assessment. Please check the system connection.');
     } finally {
       setIsLoading(false);
     }
@@ -73,7 +73,7 @@ export const RiskAnalysisPage: React.FC = () => {
     <PageTransitionLayout>
       <PageHeader
         title="Supplier Risk Analysis"
-        subtitle="Evaluate the current backend risk profile for a supplier and material."
+        subtitle="Evaluate the risk profile for a supplier and material."
         badgeText="Risk Assessment"
         badgeVariant="rose"
       />
