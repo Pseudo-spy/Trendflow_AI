@@ -34,7 +34,7 @@ def load_dataset(use_supabase: bool = True) -> tuple[pd.DataFrame, pd.DataFrame]
     """
     df_demand = None
     df_products = None
-    
+
     if use_supabase:
         try:
             df_demand = fetch_demand_history()
@@ -47,13 +47,23 @@ def load_dataset(use_supabase: bool = True) -> tuple[pd.DataFrame, pd.DataFrame]
 
     if df_demand is None or df_demand.empty:
         if os.path.exists(LOCAL_DEMAND_CSV):
-            df_demand = pd.read_csv(LOCAL_DEMAND_CSV, parse_dates=["demand_date"])
+            try:
+                df_temp = pd.read_csv(LOCAL_DEMAND_CSV, parse_dates=["demand_date"])
+                if not df_temp.empty:
+                    df_demand = df_temp
+            except pd.errors.EmptyDataError:
+                pass
         else:
             raise RuntimeError(f"No demand data available from Supabase or {LOCAL_DEMAND_CSV}")
-            
+
     if df_products is None or df_products.empty:
         if os.path.exists(LOCAL_PRODUCTS_CSV):
-            df_products = pd.read_csv(LOCAL_PRODUCTS_CSV)
+            try:
+                df_temp = pd.read_csv(LOCAL_PRODUCTS_CSV)
+                if not df_temp.empty:
+                    df_products = df_temp
+            except pd.errors.EmptyDataError:
+                pass
         else:
             # Generate minimal products dataframe from unique SKUs if missing
             unique_skus = df_demand["sku"].unique()
@@ -77,7 +87,7 @@ def build_features(df_demand: pd.DataFrame, df_products: pd.DataFrame) -> pd.Dat
     df = df_demand.copy()
     df["demand_date"] = pd.to_datetime(df["demand_date"])
     df = df.sort_values(["sku", "demand_date"]).reset_index(drop=True)
-    
+
     # Merge product metadata
     df = df.merge(df_products[["sku", "category", "season", "selling_price", "production_cost"]], on="sku", how="left")
     df["category"] = df["category"].fillna("General")
@@ -91,7 +101,7 @@ def build_features(df_demand: pd.DataFrame, df_products: pd.DataFrame) -> pd.Dat
     df["quarter"] = df["demand_date"].dt.quarter
     df["sin_month"] = np.sin(2 * np.pi * df["month"] / 12.0)
     df["cos_month"] = np.cos(2 * np.pi * df["month"] / 12.0)
-    
+
     # Promotion & Markdown
     df["promotion_flag"] = df["promotion"].astype(int)
     df["markdown_pct"] = df["markdown_percentage"].fillna(0.0)
@@ -120,7 +130,7 @@ def train_forecasting_model(df_features: pd.DataFrame, df_products: pd.DataFrame
     # Categorical encoding for category and season
     categories = sorted(df_products["category"].unique().tolist())
     seasons = sorted(df_products["season"].unique().tolist())
-    
+
     cat_to_code = {c: i for i, c in enumerate(categories)}
     season_to_code = {s: i for i, s in enumerate(seasons)}
 
@@ -181,7 +191,7 @@ def train_forecasting_model(df_features: pd.DataFrame, df_products: pd.DataFrame
     # Evaluate on validation holdout
     val_preds = model.predict(X_val)
     val_preds = np.maximum(0, val_preds)
-    
+
     mae = float(mean_absolute_error(y_val, val_preds))
     rmse = float(np.sqrt(mean_squared_error(y_val, val_preds)))
     mape = float(np.mean(np.abs((y_val - val_preds) / np.maximum(1, y_val))) * 100)
@@ -216,7 +226,7 @@ def train_forecasting_model(df_features: pd.DataFrame, df_products: pd.DataFrame
         r_mean = float(recent["quantity_sold"].mean())
         r_std = float(recent["quantity_sold"].std()) if len(recent) > 1 and not np.isnan(recent["quantity_sold"].std()) else 0.0
         st_rate = float(recent.iloc[-1]["sell_through_rate"])
-        
+
         latest_sku_stats[sku] = {
             "lag_1": latest_qty,
             "lag_2": lag2_qty,
@@ -261,4 +271,4 @@ if __name__ == "__main__":
     df_demand, df_products = load_dataset(use_supabase=True)
     df_features = build_features(df_demand, df_products)
     model_bundle = train_forecasting_model(df_features, df_products)
-    save_model(model_bundle)
+    save_model(model_bundle)

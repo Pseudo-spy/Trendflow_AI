@@ -91,13 +91,13 @@ export const AppLayout: React.FC = () => {
       <div
         style={{
           flex: 1,
-          marginLeft: isTablet ? '0px' : '270px',
+          marginLeft: isTablet ? '0px' : '74px',
           display: 'flex',
           flexDirection: 'column',
           minHeight: '100vh',
           position: 'relative',
           zIndex: 10,
-          width: isTablet ? '100%' : 'calc(100% - 270px)',
+          width: isTablet ? '100%' : 'calc(100% - 74px)',
         }}
       >
         <Header 

@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { SceneCanvas } from '../../three/SceneCanvas';
 const ProcurementAllocation3D = React.lazy(() => import('../../scenes/ProcurementAllocation3D').then(m => ({ default: m.ProcurementAllocation3D })));
-import { GlowButton } from '../ui/GlowButton';
-import { Compass, Cpu, Zap } from 'lucide-react';
+
+import { Compass, Cpu } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 import type { OptimizationResponse } from '../../services/api/procurementApi';
@@ -300,11 +300,7 @@ export const ProcurementHero: React.FC<ProcurementHeroProps> = ({ result }) => {
               </div>
             </div>
 
-          <div style={{ marginTop: '12px' }}>
-            <GlowButton variant="primary" size="sm" icon={<Zap size={13} />} style={{ width: '100%' }} disabled={true}>
-              EDI Integration (Pending)
-            </GlowButton>
-          </div>
+
         </div>
       </div>
 

@@ -96,16 +96,26 @@ export const DemandDriversChart: React.FC = () => {
             style={inputStyle}
           />
         </div>
-        <GlowButton
-          variant="primary"
-          size="sm"
-          icon={<Play size={12} />}
-          onClick={handleRun}
-          disabled={running || !sku.trim()}
-          loading={running}
-        >
-          {running ? 'Running...' : 'Run Forecast'}
-        </GlowButton>
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '8px', marginBottom: '4px' }}>
+          <GlowButton
+            variant="primary"
+            icon={<Play size={16} />}
+            onClick={handleRun}
+            disabled={running || !sku.trim()}
+            loading={running}
+            style={{
+              width: '100%',
+              maxWidth: '240px',
+              minHeight: '46px',
+              padding: '10px 24px',
+              borderRadius: '12px',
+              fontSize: '15px',
+              fontWeight: 700,
+            }}
+          >
+            {running ? 'Running...' : 'Run Forecast'}
+          </GlowButton>
+        </div>
       </div>
 
       {/* Error */}

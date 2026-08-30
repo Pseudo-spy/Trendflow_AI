@@ -4,11 +4,9 @@ import { controlTowerNodes } from '../../scenes/mock3DData';
 const ControlTowerHero3D = React.lazy(() => import('../../scenes/ControlTowerHero3D').then(m => ({ default: m.ControlTowerHero3D })));
 import type { SupplyChainNodeData } from '../../types/three';
 import { Badge } from '../ui/Badge';
-import { GlowButton } from '../ui/GlowButton';
 import {
   Compass,
   Layers,
-  Sparkles,
 } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
@@ -174,102 +172,148 @@ export const ControlTowerHero: React.FC = () => {
         </div>
 
         {/* Live Node Telemetry Inspector HUD */}
-        <div
-          style={{
-            borderRadius: '10px',
-            background: isLight ? '#F0FDF4' : '#040705',
-            border: isLight ? '1px solid #D1FAE5' : '1px solid #16241C',
-            padding: '18px',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            boxShadow: '0 1px 4px rgba(0,0,0,0.4)',
-          }}
-        >
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-              <span style={{ fontSize: '10px', fontWeight: 800, color: '#16A34A', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                Node Telemetry Inspector
-              </span>
-              <Badge variant={activeNode.status === 'optimal' ? 'emerald' : 'amber'}>
-                {activeNode.status.toUpperCase()}
-              </Badge>
-            </div>
-
-            <h3 style={{ fontSize: '17px', fontWeight: 800, color: isLight ? '#064E3B' : '#F0FDF4', marginBottom: '2px' }}>
-              {activeNode.name}
-            </h3>
-            <p style={{ fontSize: '11px', color: isLight ? '#15803D' : '#86A795', marginBottom: '16px' }}>
-              {activeNode.city} • {activeNode.country}
-            </p>
-
-            {/* Telemetry Metrics Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
-              <div
-                style={{
-                  padding: '10px',
-                  borderRadius: '6px',
-                  background: isLight ? '#FFFFFF' : '#090D0B',
-                  border: isLight ? '1px solid #D1FAE5' : '1px solid #16241C',
-                }}
-              >
-                <div style={{ fontSize: '10px', color: isLight ? '#047857' : '#86A795' }}>Capacity Load</div>
-                <div style={{ fontSize: '15px', fontWeight: 800, color: '#16A34A', fontFamily: "'JetBrains Mono', monospace" }}>
-                  {activeNode.capacity}%
-                </div>
-              </div>
-
-              <div
-                style={{
-                  padding: '10px',
-                  borderRadius: '6px',
-                  background: isLight ? '#FFFFFF' : '#090D0B',
-                  border: isLight ? '1px solid #D1FAE5' : '1px solid #16241C',
-                }}
-              >
-                <div style={{ fontSize: '10px', color: isLight ? '#047857' : '#86A795' }}>Risk Score</div>
-                <div
-                  style={{
-                    fontSize: '15px',
-                    fontWeight: 800,
-                    color: activeNode.riskScore < 30 ? '#16A34A' : activeNode.riskScore < 60 ? '#F59E0B' : '#EF4444',
-                    fontFamily: "'JetBrains Mono', monospace",
-                  }}
-                >
-                  {activeNode.riskScore}/100
-                </div>
-              </div>
-            </div>
-
-            {/* Telemetry Status Rows */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
-                <span style={{ color: isLight ? '#047857' : '#86A795' }}>Role in Pipeline</span>
-                <span style={{ fontWeight: 700, color: isLight ? '#064E3B' : '#F0FDF4', textTransform: 'capitalize' }}>
-                  {activeNode.type} Node
-                </span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
-                <span style={{ color: isLight ? '#047857' : '#86A795' }}>Solver State</span>
-                <span style={{ fontWeight: 700, color: '#16A34A' }}>Synchronized</span>
-              </div>
-            </div>
-          </div>
-
-          <div style={{ marginTop: '16px' }}>
-            <GlowButton
-              variant="primary"
-              size="lg"
-              icon={<Sparkles size={18} />}
+        {(() => {
+          const nodeContext: Record<string, { role: string; input: string; output: string; feedsInto: string; purpose: string }> = {
+            'node-demand': {
+              role: 'Demand Input Node',
+              input: 'Historical Sales Data',
+              output: 'Demand Signal',
+              feedsInto: 'Forecasting',
+              purpose: 'Captures historical customer demand signals that form the foundation for future demand forecasting.',
+            },
+            'node-forecast': {
+              role: 'Forecasting Node',
+              input: 'Historical Demand',
+              output: 'Forecast Quantity + Confidence',
+              feedsInto: 'S&OP Planning',
+              purpose: 'Transforms historical demand patterns into projected demand quantities and confidence estimates.',
+            },
+            'node-sop': {
+              role: 'Planning Coordination Node',
+              input: 'Forecast Demand + Available Inventory',
+              output: 'Net Requirement + Material Requirement',
+              feedsInto: 'Production & Procurement Planning',
+              purpose: 'Balances forecast demand with available inventory and converts the resulting requirement into coordinated production and material planning.',
+            },
+            'node-inventory': {
+              role: 'Inventory Node',
+              input: 'SKU + Location Stock',
+              output: 'Available Inventory',
+              feedsInto: 'S&OP Net Demand Calculation',
+              purpose: 'Provides location-level available stock used to reduce the quantity that must be newly produced.',
+            },
+            'node-production': {
+              role: 'Production Planning Node',
+              input: 'Net Demand + Capacity',
+              output: 'Production Requirement',
+              feedsInto: 'Material Planning',
+              purpose: 'Determines the production requirement after considering net demand and available manufacturing capacity.',
+            },
+            'node-materials': {
+              role: 'Material Requirement Node',
+              input: 'Production Requirement',
+              output: 'Required Material Quantity',
+              feedsInto: 'Procurement',
+              purpose: 'Converts production requirements into the raw-material quantities needed for sourcing.',
+            },
+            'node-suppliers': {
+              role: 'Supplier Network Node',
+              input: 'Supplier Capacity + Price + Performance',
+              output: 'Eligible Supplier Options',
+              feedsInto: 'Procurement Optimization',
+              purpose: 'Represents eligible sourcing partners and the commercial and performance information used by procurement.',
+            },
+            'node-procurement': {
+              role: 'Procurement Decision Node',
+              input: 'Material Requirement + Supplier Options',
+              output: 'Supplier Allocation + Cost',
+              feedsInto: 'Risk & Scenario Analysis',
+              purpose: 'Allocates required materials across eligible suppliers while considering sourcing constraints and procurement objectives.',
+            },
+            'node-risk': {
+              role: 'Risk Assessment Node',
+              input: 'Supplier Performance + Delivery + Quality Signals',
+              output: 'Risk Score + Risk Level',
+              feedsInto: 'Procurement Decision Support',
+              purpose: 'Evaluates supplier-related delivery and quality risk to support safer procurement decisions.',
+            },
+          };
+          const ctx = nodeContext[activeNode.id] || {
+            role: `${activeNode.type} Node`,
+            input: '—',
+            output: '—',
+            feedsInto: '—',
+            purpose: '',
+          };
+          const rows: { label: string; value: string }[] = [
+            { label: 'Role in Pipeline', value: ctx.role },
+            { label: 'Input', value: ctx.input },
+            { label: 'Output', value: ctx.output },
+            { label: 'Feeds Into', value: ctx.feedsInto },
+          ];
+          const valueAccent = isLight ? '#059669' : '#34D399';
+          return (
+            <div
               style={{
-                width: '100%',
-                fontWeight: 700,
+                borderRadius: '10px',
+                background: isLight ? '#F0FDF4' : '#040705',
+                border: isLight ? '1px solid #D1FAE5' : '1px solid #16241C',
+                padding: '18px',
+                display: 'flex',
+                flexDirection: 'column',
+                boxShadow: '0 1px 4px rgba(0,0,0,0.4)',
               }}
             >
-              Analyze {activeNode.name}
-            </GlowButton>
-          </div>
-        </div>
+              <div style={{ marginBottom: '14px' }}>
+                <span style={{ fontSize: '10px', fontWeight: 800, color: '#16A34A', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  Node Telemetry Inspector
+                </span>
+              </div>
+
+              <h3 style={{ fontSize: '17px', fontWeight: 800, color: isLight ? '#064E3B' : '#F0FDF4', marginBottom: '2px' }}>
+                {activeNode.name}
+              </h3>
+              <p style={{ fontSize: '11px', color: isLight ? '#15803D' : '#86A795', marginBottom: '16px' }}>
+                {activeNode.city} • {activeNode.country}
+              </p>
+
+              {/* Workflow Context Rows */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {rows.map((row) => (
+                  <div
+                    key={row.label}
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-start',
+                      fontSize: '11px',
+                      gap: '12px',
+                    }}
+                  >
+                    <span style={{ color: isLight ? '#047857' : '#86A795', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                      {row.label}
+                    </span>
+                    <span style={{ fontWeight: 700, color: valueAccent, textAlign: 'right' }}>
+                      {row.value}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Node Purpose */}
+              {ctx.purpose && (
+                <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: isLight ? '1px solid #D1FAE5' : '1px solid #16241C' }}>
+                  <span style={{ fontSize: '9px', fontWeight: 800, color: '#16A34A', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                    Node Purpose
+                  </span>
+                  <p style={{ fontSize: '11px', lineHeight: '1.5', color: isLight ? '#15803D' : '#86A795', marginTop: '6px' }}>
+                    {ctx.purpose}
+                  </p>
+                </div>
+              )}
+            </div>
+          );
+        })()}
       </div>
 
       {/* Node Selector Ribbon */}

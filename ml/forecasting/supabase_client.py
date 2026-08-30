@@ -9,14 +9,16 @@ import pandas as pd
 from dotenv import load_dotenv
 from supabase import Client, create_client
 
-# Load .env from this folder or root
+# Load .env from this folder, root, or backend
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 load_dotenv(os.path.join(BASE_DIR, ".env"))
 load_dotenv(os.path.join(BASE_DIR, "..", "..", ".env"))
+load_dotenv(os.path.join(BASE_DIR, "..", "..", "backend", ".env"))
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_SERVICE_ROLE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
 SUPABASE_ANON_KEY = os.environ.get("SUPABASE_ANON_KEY")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 
 
 def get_client() -> Client:
@@ -26,11 +28,11 @@ def get_client() -> Client:
     """
     if not SUPABASE_URL:
         raise RuntimeError("SUPABASE_URL not found in environment/.env")
-    
-    key = SUPABASE_SERVICE_ROLE_KEY or SUPABASE_ANON_KEY
+
+    key = SUPABASE_SERVICE_ROLE_KEY or SUPABASE_ANON_KEY or SUPABASE_KEY
     if not key:
-        raise RuntimeError("Neither SUPABASE_SERVICE_ROLE_KEY nor SUPABASE_ANON_KEY found in .env")
-        
+        raise RuntimeError("Neither SUPABASE_SERVICE_ROLE_KEY, SUPABASE_ANON_KEY, nor SUPABASE_KEY found in .env")
+
     return create_client(SUPABASE_URL, key)
 
 
@@ -72,7 +74,7 @@ def save_forecast_to_supabase(forecast_df: pd.DataFrame) -> dict:
     """
     client = get_client()
     records = forecast_df.to_dict(orient="records")
-    
+
     # Ensure serializable types
     clean_records = []
     for r in records:
@@ -83,6 +85,6 @@ def save_forecast_to_supabase(forecast_df: pd.DataFrame) -> dict:
             "confidence": float(r["confidence"]) if r.get("confidence") is not None else None,
             "model_version": str(r["model_version"]),
         })
-    
+
     res = client.table("demand_forecast").upsert(clean_records).execute()
-    return res.data
+    return res.data

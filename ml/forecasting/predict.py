@@ -55,8 +55,13 @@ def load_product_master() -> pd.DataFrame:
         print(f"Supabase products fetch note: {e}. Checking local products CSV...")
 
     if os.path.exists(LOCAL_PRODUCTS_CSV):
-        return pd.read_csv(LOCAL_PRODUCTS_CSV)
-    
+        try:
+            df = pd.read_csv(LOCAL_PRODUCTS_CSV)
+            if not df.empty:
+                return df
+        except pd.errors.EmptyDataError:
+            pass
+
     # Fallback default 100 SKUs if neither is reachable
     return pd.DataFrame([
         {
@@ -150,7 +155,7 @@ def predict_sku_demand(
 
     input_vector = pd.DataFrame([[feature_dict[c] for c in feature_cols]], columns=feature_cols)
     raw_pred = float(model.predict(input_vector)[0])
-    
+
     # Ensure strictly non-negative integer forecast (TC-FC-01)
     forecast_quantity = max(0, int(round(raw_pred)))
 
@@ -205,7 +210,7 @@ def run_demand_forecast(
         sku = prod_row["sku"]
         promo = promotions.get(sku, False)
         mdown = markdowns.get(sku, 0.0)
-        
+
         forecast_item = predict_sku_demand(
             model_bundle=model_bundle,
             sku_row=prod_row.to_dict(),
@@ -233,7 +238,7 @@ if __name__ == "__main__":
     print(forecast_df.head(10))
     print("\n--- Summary Statistics ---")
     print(forecast_df["forecast_quantity"].describe())
-    
+
     os.makedirs(os.path.dirname(DEFAULT_OUTPUT_PATH), exist_ok=True)
     forecast_df.to_csv(DEFAULT_OUTPUT_PATH, index=False)
-    print(f"\nSaved local output CSV to {DEFAULT_OUTPUT_PATH}")
+    print(f"\nSaved local output CSV to {DEFAULT_OUTPUT_PATH}")

@@ -4,11 +4,9 @@ import { sopPipelineStages } from '../../scenes/mock3DData';
 const SopPipeline3D = React.lazy(() => import('../../scenes/SopPipeline3D').then(m => ({ default: m.SopPipeline3D })));
 import type { SupplyChainNodeData } from '../../types/three';
 import { Badge } from '../ui/Badge';
-import { GlowButton } from '../ui/GlowButton';
 import {
   Compass,
   Boxes,
-  Sparkles,
 } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
@@ -243,11 +241,7 @@ export const SopPipelineHero: React.FC = () => {
             </div>
           </div>
 
-          <div style={{ marginTop: '12px' }}>
-            <GlowButton variant="primary" size="sm" icon={<Sparkles size={13} />} style={{ width: '100%' }} disabled={true}>
-              Calibrate Parameters (Pending)
-            </GlowButton>
-          </div>
+
         </div>
       </div>
 
