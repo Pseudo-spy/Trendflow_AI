@@ -1,0 +1,21 @@
+# Render blueprint for the TrendWear AI backend (FastAPI).
+# Deploy in one click from the Render dashboard (New -> Blueprint) by linking
+# this repository. Set the env vars below as secrets in the Render dashboard.
+services:
+  - type: web
+    name: trendwear-backend
+    runtime: docker
+    repo: https://github.com/Pseudo-spy/trendwear-sop-procurement-ai
+    plan: free
+    dockerContext: .
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: SUPABASE_URL
+        sync: false            # set from your dashboard (secret)
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false            # set from your dashboard (secret)
+      - key: GEMINI_API_KEY
+        sync: false            # optional, for AI scenario explanations
+      - key: FRONTEND_URL
+        value: https://trendwear-ai.vercel.app   # update to your real Vercel URL

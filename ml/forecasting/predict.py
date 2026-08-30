@@ -55,7 +55,12 @@ def load_product_master() -> pd.DataFrame:
         print(f"Supabase products fetch note: {e}. Checking local products CSV...")
 
     if os.path.exists(LOCAL_PRODUCTS_CSV):
-        return pd.read_csv(LOCAL_PRODUCTS_CSV)
+        try:
+            df_local = pd.read_csv(LOCAL_PRODUCTS_CSV)
+        except pd.errors.EmptyDataError:
+            df_local = pd.DataFrame()
+        if not df_local.empty:
+            return df_local
     
     # Fallback default 100 SKUs if neither is reachable
     return pd.DataFrame([

@@ -53,8 +53,15 @@ def load_dataset(use_supabase: bool = True) -> tuple[pd.DataFrame, pd.DataFrame]
             
     if df_products is None or df_products.empty:
         if os.path.exists(LOCAL_PRODUCTS_CSV):
-            df_products = pd.read_csv(LOCAL_PRODUCTS_CSV)
-        else:
+            try:
+                _local_products = pd.read_csv(LOCAL_PRODUCTS_CSV)
+            except pd.errors.EmptyDataError:
+                _local_products = pd.DataFrame()
+            if not _local_products.empty:
+                df_products = _local_products
+            else:
+                df_products = None
+        if df_products is None:
             # Generate minimal products dataframe from unique SKUs if missing
             unique_skus = df_demand["sku"].unique()
             df_products = pd.DataFrame({

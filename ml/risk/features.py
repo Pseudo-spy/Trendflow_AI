@@ -35,7 +35,24 @@ def load_contracts_csv(path: str | Path) -> pd.DataFrame:
     return df
 
 def merge_performance_and_contracts(performance: pd.DataFrame, contracts: pd.DataFrame) -> pd.DataFrame:
-    return performance
+    if contracts is None or contracts.empty:
+        return performance.copy()
+
+    merged = performance.merge(
+        contracts,
+        on="supplier_id",
+        how="left",
+        validate="many_to_one",
+    )
+
+    # Fill any suppliers missing a contract record so downstream logic sees
+    # a consistent, non-null contract state.
+    if "contract_active" in merged.columns:
+        merged["contract_active"] = (
+            merged["contract_active"].fillna(0).astype(int)
+        )
+
+    return merged
 
 def clean_features(df: pd.DataFrame) -> pd.DataFrame:
     out = df.copy()

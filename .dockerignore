@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.venv-*/
+venv/
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+!env.example
+
+# Node (not needed in backend image)
+node_modules/
+frontend/dist/
+frontend/node_modules/
+
+# Git / CI
+.git/
+.gitignore
+
+# Local artifacts we don't want in the image
+.pytest_cache/
+.ruff_cache/
+reports/p4/
+ML_SAFE_TESTING/
+
+# OS
+.DS_Store
